@@ -2,9 +2,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import React from "react";
-import { HomeView } from "@/modules/home/ui/views/home-view";
+import OverviewView from "@/modules/buyer/overview/overview-view";
 
-export default async function Home() {
+export default async function OverviewPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -12,9 +12,5 @@ export default async function Home() {
   if (!session) {
     redirect("/sign-in");
   }
-  return (
-    <div>
-      <HomeView />
-    </div>
-  );
+  return <OverviewView />;
 }

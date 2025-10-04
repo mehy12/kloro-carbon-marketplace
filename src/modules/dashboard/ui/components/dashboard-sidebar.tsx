@@ -22,13 +22,33 @@ import DashboardUserButton from "../../dashboard-user-button";
 const firstSection = [
   {
     icon: LayoutDashboard,
-    label: "Dashboard",
-    href: "/dashboard",
+    label: "Overview",
+    href: "/",
+  },
+  {
+    icon: VideoIcon,
+    label: "Market",
+    href: "/market",
+  },
+  {
+    icon: StarIcon,
+    label: "My Portfolio",
+    href: "/portfolio",
+  },
+  {
+    icon: LayoutDashboard,
+    label: "Transactions",
+    href: "/transactions",
+  },
+  {
+    icon: LayoutDashboard,
+    label: "Compliance",
+    href: "/compliance",
   },
   {
     icon: BotIcon,
-    label: "Docs",
-    href: "/Docs",
+    label: "AI Insights",
+    href: "/ai-insights",
   },
 ];
 const secondSection = [
