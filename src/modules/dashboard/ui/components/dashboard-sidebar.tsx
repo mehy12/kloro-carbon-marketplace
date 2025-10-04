@@ -88,8 +88,8 @@ export default function DashboardSidebar() {
                     className={cn(
                       "h-10 border border-transparent bg-[var(--sidebar)]",
                       "hover:border-[#592E83]/20",
-                      pathname === item.href &&
-                        "border-[#9984D4]/20 bg-[linear-gradient(to_right,var(--sidebar-accent)_5%,var(--sidebar-primary)_30%,var(--sidebar)_100%)]"
+pathname === item.href &&
+                        "border-sidebar-primary/40 bg-sidebar-primary text-sidebar-primary-foreground"
                     )}
                   >
                     <Link href={item.href}>
@@ -117,8 +117,8 @@ export default function DashboardSidebar() {
                     className={cn(
                       "h-10 border border-transparent bg-[var(--sidebar)]",
                       "hover:border-[#592E83]/20",
-                      pathname === item.href &&
-                        "border-[#9984D4]/20 bg-[linear-gradient(to_right,var(--sidebar-accent)_5%,var(--sidebar-primary)_30%,var(--sidebar)_100%)]"
+pathname === item.href &&
+                        "border-sidebar-primary/40 bg-sidebar-primary text-sidebar-primary-foreground"
                     )}
                   >
                     <Link href={item.href}>

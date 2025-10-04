@@ -22,18 +22,11 @@ export default function layout({ children }: Props) {
               </Link>
             </div>
             <nav className="hidden md:flex items-center gap-2">
-              <Link href="/" className="text-sm px-3 py-2 rounded-md hover:bg-muted">Overview</Link>
-              <Link href="/market" className="text-sm px-3 py-2 rounded-md hover:bg-muted">Market</Link>
-              <Link href="/portfolio" className="text-sm px-3 py-2 rounded-md hover:bg-muted">My Portfolio</Link>
-              <Link href="/transactions" className="text-sm px-3 py-2 rounded-md hover:bg-muted">Transactions</Link>
-              <Link href="/compliance" className="text-sm px-3 py-2 rounded-md hover:bg-muted">Compliance</Link>
-              <Link href="/ai-insights" className="text-sm px-3 py-2 rounded-md hover:bg-muted">AI Insights</Link>
-            </nav>
+              </nav>
             <div className="flex items-center gap-2">
               <Button size="sm" className="hidden sm:inline-flex">Buy Credits</Button>
               <Button variant="outline" size="sm" className="hidden md:inline-flex">Retire Credits</Button>
-              <Button variant="outline" size="sm" className="hidden lg:inline-flex">Compliance Report</Button>
-              <Button variant="ghost" size="sm">Ask AI</Button>
+              
             </div>
           </div>
         </header>

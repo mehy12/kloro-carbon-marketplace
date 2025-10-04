@@ -9,13 +9,12 @@ Project overview
 - Structure: Feature-first modules under src/modules, shared UI components under src/components/ui, DB layer under src/db, and app routes/layouts under src/app.
 
 Commands
-Use npm (package-lock.json is present).
-- Install dependencies: npm install
+Package manager: npm (package-lock.json is present).
+- Install dependencies (clean, reproducible): npm ci
 - Start dev server (http://localhost:3000): npm run dev
 - Build production bundle: npm run build
 - Start production server: npm run start
-- Lint (ESLint flat config): npm run lint
-  - To lint specific paths: npm run lint -- .
+- Lint (ESLint v9 flat config via Next): npm run lint -- .
 - Database (Drizzle):
   - Push schema to DB: npm run db:push
   - Open Drizzle Studio: npm run db:studio
@@ -35,7 +34,7 @@ High-level architecture
   - Global layout: src/app/layout.tsx sets fonts and global CSS.
   - Route groups:
     - (auth): Auth surfaces with their own layout; sign-in and sign-up pages at /sign-in and /sign-up. Both are server components that check the current session and redirect appropriately.
-    - (dashboard): Root “/” is within this group. src/app/(dashboard)/page.tsx enforces auth on the server (redirects to /sign-in if no session) and renders the HomeView client component.
+    - (dashboard): Root “/” is within this group. src/app/(dashboard)/page.tsx enforces auth on the server (redirects to /sign-in if no session) and renders OverviewView from the buyer module (src/modules/buyer/overview/overview-view.tsx).
   - API route for Auth: src/app/api/auth/[...all]/route.ts exposes better-auth handlers via toNextJsHandler(auth) for GET/POST.
 
 - Authentication
@@ -52,8 +51,9 @@ High-level architecture
   - Design system: src/components/ui contains a comprehensive set of UI primitives (e.g., button, input, dialog, sidebar, etc.), largely based on Radix UI and shadcn-style patterns. Sidebar includes a provider/context and responsive behavior.
   - Feature modules: src/modules organizes feature UI into domain-focused areas:
     - auth: Form views for sign-in and sign-up using zod, react-hook-form, and better-auth client actions.
-    - home: HomeView shows authenticated user info and provides sign-out.
+    - buyer: Sections like overview, market, portfolio, transactions, compliance, and AI insights; OverviewView is used on the “/” route.
     - dashboard: Sidebar shell and related UI pieces.
+    - home: Present but not the default “/” route; provides a simple authenticated landing view.
 
 - Styling and configuration
   - Tailwind CSS v4 with globals in src/app/globals.css; class utilities via cn in src/lib/utils.ts.
@@ -70,4 +70,5 @@ References pulled into this file
 - README.md: Dev server instructions and Next.js template notes.
 - drizzle.config.ts: DB config and dotenv behavior.
 - package.json scripts: dev, build, start, lint, db:push, db:studio.
-- Key source files: App Router pages/layouts, auth (server/client), DB schema/connection, and UI system.
+- tsconfig.json: path alias @/* to src/*.
+- Key source files: App Router pages/layouts, auth (server/client), DB schema/connection, buyer module (overview), and UI system.

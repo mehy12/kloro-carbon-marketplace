@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import BuyCreditsModal from "./components/buy-credits-modal";
 
 const MOCK_CREDITS = [
   { id: "1", title: "Arunachal Forest Restoration Project", registry: "VCS", location: "India", type: "Nature-Based", vintage: 2024, available: 150000, price: 1250, co: ["SDG13", "SDG15"] },
@@ -16,6 +17,7 @@ const MOCK_CREDITS = [
 export default function MarketView() {
   const [open, setOpen] = useState<string | null>(null);
   const [price, setPrice] = useState([150, 1500]);
+  const [buyFor, setBuyFor] = useState<any | null>(null);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -78,7 +80,7 @@ export default function MarketView() {
               <div className="text-sm text-muted-foreground">Available: {c.available.toLocaleString()} | Price: ₹{c.price}/credit</div>
               <div className="flex gap-2 mt-2">
                 <Button size="sm" variant="outline" onClick={() => setOpen(c.id)}>Details</Button>
-                <Button size="sm">Buy Credits</Button>
+                <Button size="sm" onClick={() => setBuyFor(c)}>Buy Credits</Button>
               </div>
             </CardContent>
           </Card>
@@ -96,6 +98,8 @@ export default function MarketView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <BuyCreditsModal open={!!buyFor} onClose={() => setBuyFor(null)} project={buyFor} />
     </div>
   );
 }
