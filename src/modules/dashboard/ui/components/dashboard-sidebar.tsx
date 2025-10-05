@@ -19,11 +19,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DashboardUserButton from "../../dashboard-user-button";
 
-const firstSection = [
+const buyerMenu = [
   {
     icon: LayoutDashboard,
     label: "Overview",
-    href: "/",
+    href: "/buyer-dashboard",
   },
   {
     icon: VideoIcon,
@@ -51,6 +51,17 @@ const firstSection = [
     href: "/ai-insights",
   },
 ];
+
+const sellerMenu = [
+  { icon: LayoutDashboard, label: "Overview", href: "/seller-dashboard?tab=overview" },
+  { icon: LayoutDashboard, label: "My Projects", href: "/seller-dashboard?tab=projects" },
+  { icon: LayoutDashboard, label: "List Credits", href: "/seller-dashboard?tab=list" },
+  { icon: LayoutDashboard, label: "Transactions", href: "/seller-dashboard?tab=orders" },
+  { icon: LayoutDashboard, label: "Verification", href: "/seller-dashboard?tab=verification" },
+  { icon: LayoutDashboard, label: "Revenue", href: "/seller-dashboard?tab=revenue" },
+  { icon: BotIcon, label: "AI Insights", href: "/seller-dashboard?tab=insights" },
+];
+
 const secondSection = [
   {
     icon: StarIcon,
@@ -60,6 +71,8 @@ const secondSection = [
 ];
 export default function DashboardSidebar() {
   const pathname = usePathname();
+  const isSeller = pathname.startsWith("/seller-dashboard");
+  const firstSection = isSeller ? sellerMenu : buyerMenu;
 
   return (
     <Sidebar>

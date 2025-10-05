@@ -53,10 +53,12 @@ export default function SignInView() {
         callbackURL: "/",
       },
       {
-        onSuccess: async (ctx) => {
+onSuccess: async () => {
           setPending(false);
-          // Get user role from session data
-          const userRole = ctx.user.role as "buyer" | "seller";
+          // Fetch session to get role reliably
+          const s = await authClient.getSession();
+          const userRole = ((s?.data as any)?.user?.role as "buyer" | "seller" | undefined) ?? "buyer";
+          try { setRole(userRole); } catch {}
           const to = userRole === "seller" ? "/seller-dashboard" : "/buyer-dashboard";
           router.push(to);
         },

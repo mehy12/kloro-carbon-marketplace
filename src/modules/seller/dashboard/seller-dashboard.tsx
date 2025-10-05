@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,9 +14,24 @@ import Verification from "./components/verification";
 import Insights from "./components/insights";
 
 export default function SellerDashboard() {
+  const [tab, setTab] = React.useState<string>("overview");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    const q = searchParams.get("tab") ?? "overview";
+    setTab(q);
+  }, [searchParams]);
+
+  const onChange = (value: string) => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("tab", value);
+    router.push(`/seller-dashboard?${params.toString()}`);
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <Tabs defaultValue="overview">
+      <Tabs value={tab} onValueChange={onChange}>
         <div className="flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>

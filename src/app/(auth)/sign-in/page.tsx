@@ -11,7 +11,12 @@ export default async function SignIn() {
   });
 
   if (!!session) {
-    redirect("/");
+    const role = (session.user?.role as "buyer" | "seller" | undefined) ?? "buyer";
+    const completed = (session.user as any)?.onboardingCompleted as boolean | undefined;
+    if (completed === false) {
+      redirect("/onboarding/role");
+    }
+    redirect(role === "seller" ? "/seller-dashboard" : "/buyer-dashboard");
   }
   return <SignInView />;
 }

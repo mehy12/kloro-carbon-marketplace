@@ -15,7 +15,9 @@ export default function ProtectedRoute({ allowed, children }: { allowed: Role[];
       router.replace("/sign-in");
       return;
     }
-    const role = getRole();
+    const sessionRole = (((session as any).user?.role) as Role | undefined) ?? null;
+    const role = sessionRole ?? getRole();
+
     if (!role || !allowed.includes(role)) {
       router.replace("/403");
     }
