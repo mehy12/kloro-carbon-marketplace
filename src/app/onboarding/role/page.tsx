@@ -17,6 +17,11 @@ const buyerSchema = z.object({
   companyName: z.string().min(1, "Required"),
   industryType: z.string().min(1, "Required"),
   address: z.string().optional(),
+  // Carbon calculation fields
+  employeeCount: z.number().min(1, "Must have at least 1 employee"),
+  annualRevenue: z.number().min(0, "Revenue must be positive"),
+  energyConsumption: z.number().min(0, "Energy consumption must be positive"),
+  businessTravelDistance: z.number().min(0, "Travel distance must be positive"),
 });
 
 const sellerSchema = z.object({
@@ -41,6 +46,10 @@ const buyerForm = useForm<z.infer<typeof buyerSchema>>({
       companyName: "",
       industryType: "",
       address: "",
+      employeeCount: 1,
+      annualRevenue: 0,
+      energyConsumption: 0,
+      businessTravelDistance: 0,
     }),
   });
 
@@ -99,33 +108,132 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
       {role === "buyer" && (
         <Card>
           <CardContent className="p-4 space-y-4">
-            <div className="text-base font-semibold">Buyer Details</div>
+            <div className="text-base font-semibold">Company Details</div>
             <Form {...buyerForm}>
-              <form onSubmit={buyerForm.handleSubmit(onSubmitBuyer)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField control={buyerForm.control} name="companyName" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Name</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-<FormField control={buyerForm.control} name="industryType" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Industry</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+              <form onSubmit={buyerForm.handleSubmit(onSubmitBuyer)} className="space-y-6">
+                {/* Basic Company Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={buyerForm.control} name="companyName" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl><Input {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={buyerForm.control} name="industryType" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Industry Type</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your industry" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                            <SelectItem value="technology">Technology</SelectItem>
+                            <SelectItem value="finance">Finance</SelectItem>
+                            <SelectItem value="retail">Retail</SelectItem>
+                            <SelectItem value="healthcare">Healthcare</SelectItem>
+                            <SelectItem value="construction">Construction</SelectItem>
+                            <SelectItem value="transportation">Transportation</SelectItem>
+                            <SelectItem value="energy">Energy</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                
                 <FormField control={buyerForm.control} name="address" render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Address (free text or JSON)</FormLabel>
-<FormControl><Input placeholder='e.g. London, UK or {"city":"London"}' {...field} /></FormControl>
+                  <FormItem>
+                    <FormLabel>Company Address</FormLabel>
+                    <FormControl><Input placeholder="e.g. 123 Business St, City, Country" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <div className="md:col-span-2 flex justify-end gap-2">
+                
+                {/* Carbon Footprint Calculation */}
+                <div className="space-y-4">
+                  <div className="border-t pt-4">
+                    <h3 className="text-base font-semibold mb-2">Carbon Footprint Assessment</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Help us calculate your company's carbon footprint and recommend the right amount of carbon credits.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={buyerForm.control} name="employeeCount" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Number of Employees</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    
+                    <FormField control={buyerForm.control} name="annualRevenue" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Annual Revenue (USD)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            step="1000"
+                            placeholder="e.g. 1000000"
+                            {...field} 
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    
+                    <FormField control={buyerForm.control} name="energyConsumption" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Annual Energy Consumption (kWh)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            step="1000"
+                            placeholder="e.g. 50000"
+                            {...field} 
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    
+                    <FormField control={buyerForm.control} name="businessTravelDistance" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Annual Business Travel (km)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            step="1000"
+                            placeholder="e.g. 25000"
+                            {...field} 
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
                   <Button type="button" variant="outline" onClick={() => persistDraft("buyer", buyerForm.getValues())}>Save Draft</Button>
-                  <Button type="submit">Continue</Button>
+                  <Button type="submit">Calculate & Continue</Button>
                 </div>
               </form>
             </Form>

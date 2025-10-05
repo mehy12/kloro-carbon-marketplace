@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function formatINR(n: number) { return n.toLocaleString("en-IN"); }
 function formatCurrency(n: number) { return `₹${formatINR(Math.round(n))}`; }
@@ -48,6 +50,8 @@ export default function ListCredits() {
   const [qty, setQty] = useState<number>(1000);
   const [price, setPrice] = useState<number>(1250);
   const [platformRate] = useState<number>(0.02);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isListing, setIsListing] = useState(false);
 
   const clampQty = (q: number) => {
     if (!Number.isFinite(q) || q < 1) return 1;
@@ -60,14 +64,44 @@ export default function ListCredits() {
   };
 
   const onList = async () => {
-    if (!projectId) return;
-    const res = await fetch("/api/credits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId, quantity: qty, pricePerCredit: price }),
-    });
-    if (res.ok) {
-      router.refresh?.();
+    if (!projectId) {
+      toast.error("Please select a project");
+      return;
+    }
+    if (qty < 1) {
+      toast.error("Quantity must be at least 1");
+      return;
+    }
+    if (price <= 0) {
+      toast.error("Price must be greater than 0");
+      return;
+    }
+
+    setIsListing(true);
+    try {
+      const res = await fetch("/api/credits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, quantity: qty, pricePerCredit: price }),
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success(`Successfully listed ${qty.toLocaleString()} credits!`);
+        setShowPreview(false);
+        // Reset form
+        setQty(1000);
+        setPrice(1250);
+        router.refresh();
+      } else {
+        toast.error(data.error || "Failed to list credits");
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.");
+      console.error("Error listing credits:", error);
+    } finally {
+      setIsListing(false);
     }
   };
 
@@ -127,8 +161,19 @@ export default function ListCredits() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline">Preview Listing</Button>
-                <Button onClick={onList}>Confirm & List</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPreview(true)}
+                  disabled={!projectId || qty < 1 || price <= 0}
+                >
+                  Preview Listing
+                </Button>
+                <Button 
+                  onClick={onList} 
+                  disabled={!projectId || qty < 1 || price <= 0 || isListing}
+                >
+                  {isListing ? "Listing..." : "Confirm & List"}
+                </Button>
               </div>
             </>
           )}
@@ -146,6 +191,56 @@ export default function ListCredits() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Preview Listing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold">{project?.name || "Project"}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {[project?.registry, project?.type].filter(Boolean).join(" • ")}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold">{formatCurrency(price)}/credit</div>
+                  <div className="text-sm text-muted-foreground">{formatINR(qty)} available</div>
+                </div>
+              </div>
+              
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Total Value:</span>
+                  <span>{formatCurrency(base)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Platform Fee ({Math.round(platformRate*100)}%):</span>
+                  <span>-{formatCurrency(platformFee)}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>You'll Earn:</span>
+                  <span>{formatCurrency(expected)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              This listing will appear on the marketplace immediately and be visible to all buyers.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>Cancel</Button>
+            <Button onClick={onList} disabled={isListing}>
+              {isListing ? "Listing..." : "Confirm & List"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

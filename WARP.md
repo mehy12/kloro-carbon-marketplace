@@ -6,6 +6,7 @@ Project overview
 - Stack: Next.js (App Router) with TypeScript and Tailwind CSS v4.
 - Auth: better-auth with OAuth (GitHub, Google) and email/password.
 - Database: Postgres via Neon HTTP driver and Drizzle ORM; migrations managed with drizzle-kit.
+- Domain: Carbon credit marketplace with buyer/seller roles and compliance tracking.
 - Structure: Feature-first modules under src/modules, shared UI components under src/components/ui, DB layer under src/db, and app routes/layouts under src/app.
 
 Commands
@@ -35,7 +36,13 @@ High-level architecture
   - Route groups:
     - (auth): Auth surfaces with their own layout; sign-in and sign-up pages at /sign-in and /sign-up. Both are server components that check the current session and redirect appropriately.
     - (dashboard): Root “/” is within this group. src/app/(dashboard)/page.tsx enforces auth on the server (redirects to /sign-in if no session) and renders OverviewView from the buyer module (src/modules/buyer/overview/overview-view.tsx).
-  - API route for Auth: src/app/api/auth/[...all]/route.ts exposes better-auth handlers via toNextJsHandler(auth) for GET/POST.
+  - API routes:
+    - Auth: src/app/api/auth/[...all]/route.ts exposes better-auth handlers via toNextJsHandler(auth) for GET/POST.
+    - Credits: /api/credits with GET/POST, /api/credits/[id] for specific credit, /api/credits/mine for user's credits
+    - User: /api/me for current user profile
+    - Onboarding: /api/onboard/buyer and /api/onboard/seller for role setup
+    - Projects: /api/projects for project management
+  - Role-based routing: /onboarding/role for initial role selection, separate dashboard routes for buyers and sellers
 
 - Authentication
   - Server configuration: src/lib/auth.ts uses betterAuth with two social providers (GitHub, Google) and email/password enabled. It connects to Postgres using drizzleAdapter(db, { provider: "pg", schema }).
@@ -44,16 +51,21 @@ High-level architecture
 
 - Database layer
   - Connection: src/db/index.ts creates a Neon HTTP driver connection via drizzle(process.env.DATABASE_URL).
-  - Schema: src/db/schema.ts defines user, session, account, and verification tables compatible with better-auth.
+  - Schema: src/db/schema.ts defines authentication tables (user, session, account, verification) plus domain-specific tables for carbon marketplace:
+    - Role-based profiles: buyerProfile, sellerProfile with verification status
+    - Carbon marketplace: project, carbonCredit, transaction tables with enums for status tracking
+    - Compliance: wasteLedger for tracking CO2e emissions
+    - Relations: Comprehensive Drizzle relations between all entities
   - Migrations/workbench: drizzle.config.ts points to schema and out directory ./drizzle; use npm run db:push and npm run db:studio.
 
 - UI system and modules
   - Design system: src/components/ui contains a comprehensive set of UI primitives (e.g., button, input, dialog, sidebar, etc.), largely based on Radix UI and shadcn-style patterns. Sidebar includes a provider/context and responsive behavior.
   - Feature modules: src/modules organizes feature UI into domain-focused areas:
     - auth: Form views for sign-in and sign-up using zod, react-hook-form, and better-auth client actions.
-    - buyer: Sections like overview, market, portfolio, transactions, compliance, and AI insights; OverviewView is used on the “/” route.
-    - dashboard: Sidebar shell and related UI pieces.
-    - home: Present but not the default “/” route; provides a simple authenticated landing view.
+    - buyer: Complete buyer workflow with overview, market (including buy-credits-modal), portfolio, transactions, compliance, and AI insights; OverviewView is used on the "/" route.
+    - seller: Full seller dashboard with components for add-project-dialog, insights, list-credits, my-listings, orders, overview, projects, revenue, and verification.
+    - dashboard: Sidebar shell (dashboard-sidebar.tsx) and user button components with role-based navigation.
+    - home: Simple authenticated landing view (not the default "/" route).
 
 - Styling and configuration
   - Tailwind CSS v4 with globals in src/app/globals.css; class utilities via cn in src/lib/utils.ts.

@@ -65,6 +65,13 @@ export const buyerProfile = pgTable("buyer_profile", {
     address: jsonb('address'),
     verificationStatus: verificationStatusEnum('verification_status').default('pending').notNull(),
     verifiedBy: text('verified_by').references(() => user.id),
+    // Carbon calculation fields
+    employeeCount: integer('employee_count'),
+    annualRevenue: decimal('annual_revenue', { precision: 15, scale: 2 }),
+    energyConsumption: decimal('energy_consumption', { precision: 10, scale: 2 }), // kWh per year
+    businessTravelDistance: decimal('business_travel_distance', { precision: 10, scale: 2 }), // km per year
+    calculatedCarbonFootprint: decimal('calculated_carbon_footprint', { precision: 10, scale: 2 }), // tCO2e per year
+    recommendedCredits: integer('recommended_credits'), // credits needed per year
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
