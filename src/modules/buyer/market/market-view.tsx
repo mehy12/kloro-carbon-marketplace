@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +8,33 @@ import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import BuyCreditsModal from "./components/buy-credits-modal";
 
-const MOCK_CREDITS = [
-  { id: "1", title: "Arunachal Forest Restoration Project", registry: "VCS", location: "India", type: "Nature-Based", vintage: 2024, available: 150000, price: 1250, co: ["SDG13", "SDG15"] },
-  { id: "2", title: "Gujarat Solar Offset", registry: "Verra", location: "India", type: "Renewable", vintage: 2023, available: 90000, price: 980, co: ["SDG7"] },
-  { id: "3", title: "Meghalaya Reforestation", registry: "Gold Standard", location: "India", type: "Nature-Based", vintage: 2024, available: 60000, price: 1320, co: ["SDG13", "SDG15"] },
-];
+type Credit = {
+  id: string;
+  projectName: string | null;
+  registry: string | null;
+  location: string | null;
+  type: string | null;
+  vintageYear: number | null;
+  availableQuantity: number;
+  pricePerCredit: string | number;
+};
 
 export default function MarketView() {
   const [open, setOpen] = useState<string | null>(null);
   const [price, setPrice] = useState([150, 1500]);
   const [buyFor, setBuyFor] = useState<any | null>(null);
+  const [items, setItems] = useState<Credit[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    const res = await fetch("/api/credits");
+    const data = await res.json();
+    setItems(data.credits ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -69,22 +86,28 @@ export default function MarketView() {
       </Card>
 
       <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {MOCK_CREDITS.map((c) => (
-          <Card key={c.id} className="flex flex-col">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{c.title}</h3>
-                <span className="text-xs text-muted-foreground">[Verified: {c.registry}]</span>
-              </div>
-              <div className="text-sm text-muted-foreground">Location: {c.location} | Type: {c.type} | Vintage: {c.vintage}</div>
-              <div className="text-sm text-muted-foreground">Available: {c.available.toLocaleString()} | Price: ₹{c.price}/credit</div>
-              <div className="flex gap-2 mt-2">
-                <Button size="sm" variant="outline" onClick={() => setOpen(c.id)}>Details</Button>
-                <Button size="sm" onClick={() => setBuyFor(c)}>Buy Credits</Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {loading ? (
+          <div className="text-sm text-muted-foreground">Loading credits…</div>
+        ) : items.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No credits available right now.</div>
+        ) : (
+          items.map((c) => (
+            <Card key={c.id} className="flex flex-col">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">{c.projectName ?? "Untitled Project"}</h3>
+                  <span className="text-xs text-muted-foreground">[Verified: {c.registry ?? "—"}]</span>
+                </div>
+                <div className="text-sm text-muted-foreground">Location: {c.location ?? "—"} | Type: {c.type ?? "—"} | Vintage: {c.vintageYear ?? "—"}</div>
+                <div className="text-sm text-muted-foreground">Available: {Number(c.availableQuantity ?? 0).toLocaleString()} | Price: ₹{Number(c.pricePerCredit)}/credit</div>
+                <div className="flex gap-2 mt-2">
+                  <Button size="sm" variant="outline" onClick={() => setOpen(c.id)}>Details</Button>
+                  <Button size="sm" onClick={() => setBuyFor({ id: c.id, title: c.projectName, registry: c.registry, location: c.location, type: c.type, vintage: c.vintageYear, available: Number(c.availableQuantity), price: Number(c.pricePerCredit) })}>Buy Credits</Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       <Dialog open={!!open} onOpenChange={() => setOpen(null)}>
