@@ -4,6 +4,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema"
 
 export const auth = betterAuth({
+    trustedOrigins: ["http://localhost:3000", "http://192.168.137.235:3000"],
     socialProviders: {
         github: {
             clientId: process.env.GITHUB_CLIENT_ID as string,
@@ -22,6 +23,15 @@ export const auth = betterAuth({
     }),
     emailAndPassword: {
         enabled: true,
+    },
+    user: {
+        additionalFields: {
+            role: {
+                type: "string",
+                defaultValue: "buyer",
+                required: false,
+            }
+        }
     }
 
 })

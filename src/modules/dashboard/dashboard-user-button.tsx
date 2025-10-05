@@ -12,12 +12,14 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDownIcon, CreditCard, LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import GeneratedAvatar from "@/components/ui/generated-avatar";
+import { clearRole } from "@/lib/role";
 
 export default function DashboardUserButton() {
   const router = useRouter();
   const { data, isPending } = authClient.useSession();
 
   const onLogout = () => {
+    try { clearRole(); } catch {}
     authClient.signOut({
       fetchOptions: {
         onSuccess: () => {

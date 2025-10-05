@@ -7,6 +7,7 @@ export const user = pgTable("user", {
     email: text('email').notNull().unique(),
     emailVerified: boolean('email_verified').$defaultFn(() => false).notNull(),
     image: text('image'),
+    role: text('role').$type<'buyer' | 'seller'>().notNull().default('buyer'),
     createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
     updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull()
 });

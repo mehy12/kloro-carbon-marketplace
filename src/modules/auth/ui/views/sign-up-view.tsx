@@ -10,6 +10,8 @@ import { authClient } from "@/lib/auth-client";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import React, { useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { setRole } from "@/lib/role";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ const formSchema = z
     confirmPassword: z
       .string()
       .min(1, { message: "Confirm Password is required" }),
+    role: z.enum(["buyer", "seller"], { required_error: "Select a role" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -49,6 +52,7 @@ export default function SignUpView() {
       email: "",
       password: "",
       confirmPassword: "",
+      role: undefined as unknown as "buyer" | "seller",
     },
   });
 
@@ -60,12 +64,14 @@ export default function SignUpView() {
         name: data.name,
         email: data.email,
         password: data.password,
+        role: data.role,
         callbackURL: "/",
       },
       {
         onSuccess: () => {
           setPending(false);
-          router.push("/");
+          const to = data.role === "buyer" ? "/buyer-dashboard" : "/seller-dashboard";
+          router.push(to);
         },
         onError: ({ error }) => {
           setPending(false);
@@ -174,6 +180,28 @@ export default function SignUpView() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <FormControl>
+                        <RadioGroup className="flex gap-6" onValueChange={field.onChange} value={field.value}>
+                          <label className="flex items-center gap-2 text-sm">
+                            <RadioGroupItem value="buyer" /> Buyer
+                          </label>
+                          <label className="flex items-center gap-2 text-sm">
+                            <RadioGroupItem value="seller" /> Seller
+                          </label>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {!!error && (
                   <Alert className="bg-destructive/10 border-none">
                     <OctagonAlertIcon className="!text-destructive" />

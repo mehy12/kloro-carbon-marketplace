@@ -10,6 +10,8 @@ import { authClient } from "@/lib/auth-client";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import React, { useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { setRole } from "@/lib/role";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,7 +43,7 @@ export default function SignInView() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setError(null);
     setPending(true);
     authClient.signIn.email(
@@ -51,9 +53,12 @@ export default function SignInView() {
         callbackURL: "/",
       },
       {
-        onSuccess: () => {
+        onSuccess: async (ctx) => {
           setPending(false);
-          router.push("/");
+          // Get user role from session data
+          const userRole = ctx.user.role as "buyer" | "seller";
+          const to = userRole === "seller" ? "/seller-dashboard" : "/buyer-dashboard";
+          router.push(to);
         },
         onError: ({ error }) => {
           setPending(false);
@@ -131,6 +136,7 @@ export default function SignInView() {
                     )}
                   />
                 </div>
+
                 {!!error && (
                   <Alert className="bg-destructive/10 border-none">
                     <OctagonAlertIcon className="!text-destructive" />
