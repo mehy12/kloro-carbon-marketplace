@@ -221,9 +221,9 @@ onSuccess: () => {
             </form>
           </Form>
 
-          <div className="bg-radial from-fuchsia-200 via-indigo-200 to-blue-200 relative hidden md:flex flex-col gap-y-6 items-center justify-center">
-            <Image src="/logo.svg" alt="kloro. logo" height={92} width={92} />
-            <p className="text-2xl font-semibold text-white">kloro.</p>
+          <div className="bg-radial from-turquoise-500 via-indigo-200 to-blue-200 relative hidden md:flex flex-col gap-y-6 items-center justify-center">
+            <Image src="/kloro.png" alt="kloro. logo" height={92} width={92} />
+            
           </div>
         </CardContent>
       </Card>

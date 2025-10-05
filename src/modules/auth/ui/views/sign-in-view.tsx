@@ -157,13 +157,13 @@ onSuccess: async () => {
                   <Button
                     disabled={pending}
                     onClick={() => {
-                      onSocial("github");
+                      onSocial("google");
                     }}
                     variant={"default"}
                     type="button"
                     className="w-full "
                   >
-                    <FaGithub />
+                    <FaGoogle />
                   </Button>
                 </div>
                 <div className="text-center text-sm">
@@ -180,7 +180,7 @@ onSuccess: async () => {
           </Form>
 
           <div className="bg-radial from-fuchsia-200 via-indigo-200 to-blue-200 relative hidden md:flex flex-col gap-y-6 items-center justify-center">
-            <Image src="/logo.svg" alt="kloro. logo" height={92} width={92} />
+            <Image src="/kloro.png" alt="kloro. logo" height={92} width={92} />
             <p className="text-2xl font-semibold text-white">kloro.</p>
           </div>
         </CardContent>
