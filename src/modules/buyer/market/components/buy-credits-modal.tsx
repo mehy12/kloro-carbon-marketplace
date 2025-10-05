@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CheckCircle } from "lucide-react";
 
 // Types for the project and seller
 type Project = {
-  id: string;
+  id: string; // carbonCredit.id
   title: string;
   registry: string; // e.g., Verra, Gold Standard, VCS
   type?: string;
@@ -80,6 +81,10 @@ export default function BuyCreditsModal({
   const selectedSeller = sellers.find((s) => s.id === sellerId) ?? sellers[0];
 
   const [qty, setQty] = useState<number>(100);
+  const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState<"form" | "success">("form");
+  const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const clampQty = (q: number) => {
     const max = selectedSeller?.available ?? 0;
@@ -106,16 +111,69 @@ export default function BuyCreditsModal({
   const gst = (platformFee + complianceFee) * gstRate;
   const total = base + platformFee + complianceFee + gst;
 
+  async function onConfirmPurchase() {
+    if (!project) return;
+    try {
+      setSubmitting(true);
+      const res = await fetch('/api/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creditId: project.id, quantity: qty })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error ?? 'Purchase failed');
+        return;
+      }
+      setTransactionId(data.transactionId);
+      setStep('success');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function downloadCertificate() {
+    if (!transactionId) return;
+    try {
+      setDownloading(true);
+      const res = await fetch('/api/generate-certificate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId })
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => null);
+        alert(j?.error ?? `Failed: ${res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const isZip = res.headers.get('Content-Type')?.includes('zip');
+      const filename = res.headers.get('Content-Disposition')?.split('filename=')?.[1]?.replace(/"/g, '') || (isZip ? `certificates_${transactionId}.zip` : `certificate_${transactionId}.pdf`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   if (!project) return null;
 
   return (
     <Dialog open={open} onOpenChange={(o) => (!o ? onClose() : null)}>
       <DialogContent className="sm:max-w-[620px] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="text-xl">Buy Credits</DialogTitle>
+          <DialogTitle className="text-xl">{step === 'form' ? 'Buy Credits' : 'Payment Successful'}</DialogTitle>
         </DialogHeader>
 
         <div className="px-6 pb-6 space-y-6">
+        {step === 'form' ? (
+          <>
           {/* Project Header */}
           <div className="flex items-start justify-between">
             <div className="space-y-1">
@@ -273,9 +331,30 @@ export default function BuyCreditsModal({
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button className="font-semibold">Confirm Purchase</Button>
+            <Button variant="outline" onClick={onClose} disabled={submitting}>Cancel</Button>
+            <Button className="font-semibold" onClick={onConfirmPurchase} disabled={submitting}>
+              {submitting ? 'Processing…' : 'Confirm Purchase'}
+            </Button>
           </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="mb-3 text-emerald-600">
+              <CheckCircle className="h-16 w-16 animate-in fade-in zoom-in" />
+            </div>
+            <div className="text-lg font-semibold">Payment Successful</div>
+            <div className="text-sm text-muted-foreground mt-1">Your transaction is completed.</div>
+            {transactionId && (
+              <div className="mt-4 text-xs text-muted-foreground">Transaction ID: <span className="font-mono">{transactionId}</span></div>
+            )}
+            <div className="mt-6 flex gap-3">
+              <Button onClick={downloadCertificate} disabled={downloading || !transactionId}>
+                {downloading ? 'Preparing…' : 'Download Certificate'}
+              </Button>
+              <Button variant="outline" onClick={onClose}>Close</Button>
+            </div>
+          </div>
+        )}
         </div>
       </DialogContent>
     </Dialog>

@@ -18,7 +18,7 @@ export default function layout({ children }: Props) {
             <div className="flex items-center gap-3">
               <SidebarTrigger />
               <Link href="/" className="font-semibold text-lg">
-                AirBalancer Dashboard
+                kloro. Dashboard
               </Link>
             </div>
             <nav className="hidden md:flex items-center gap-2" />

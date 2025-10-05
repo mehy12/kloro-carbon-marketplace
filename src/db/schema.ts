@@ -132,6 +132,16 @@ export const transaction = pgTable("transaction", {
     transactionDate: timestamp('transaction_date').defaultNow().notNull(),
 });
 
+export const certificateRecord = pgTable("certificate_record", {
+    id: text("id").primaryKey(), // UUID
+    certId: text("cert_id").unique().notNull(),
+    transactionId: text("transaction_id").references(() => transaction.id).notNull(),
+    issuedToBuyerId: text("issued_to_buyer_id").references(() => buyerProfile.id),
+    issuedToSellerId: text("issued_to_seller_id").references(() => sellerProfile.id),
+    verificationUrl: text("verification_url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // -- RELATIONS --
 export const userRelations = relations(user, ({ one }) => ({
     buyerProfile: one(buyerProfile, { fields: [user.id], references: [buyerProfile.userId] }),
@@ -168,4 +178,10 @@ export const transactionRelations = relations(transaction, ({ one }) => ({
     buyer: one(buyerProfile, { fields: [transaction.buyerId], references: [buyerProfile.id] }),
     seller: one(sellerProfile, { fields: [transaction.sellerId], references: [sellerProfile.id] }),
     credit: one(carbonCredit, { fields: [transaction.creditId], references: [carbonCredit.id] }),
+}));
+
+export const certificateRecordRelations = relations(certificateRecord, ({ one }) => ({
+    txn: one(transaction, { fields: [certificateRecord.transactionId], references: [transaction.id] }),
+    buyer: one(buyerProfile, { fields: [certificateRecord.issuedToBuyerId], references: [buyerProfile.id] }),
+    seller: one(sellerProfile, { fields: [certificateRecord.issuedToSellerId], references: [sellerProfile.id] }),
 }));

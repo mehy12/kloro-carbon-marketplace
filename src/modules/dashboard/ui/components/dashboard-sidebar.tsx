@@ -79,12 +79,12 @@ export default function DashboardSidebar() {
       <SidebarHeader className="text-sidebar-accent-foreground">
         <Link href={"/"} className="flex items-center gap-2 px-2 pt-2 ">
           <Image
-            src={"/logo.svg"}
-            alt="AirBalancer Logo"
-            height={36}
-            width={36}
+            src={"/kloro.png"}
+            alt="kloro. logo"
+            height={100}
+            width={100}
           />
-          <p className="text-2xl font-semibold">AirBalancer</p>
+         
         </Link>
       </SidebarHeader>
       <div className="px-4 py-2">
