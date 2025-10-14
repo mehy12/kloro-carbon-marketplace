@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/admin/Development/QUANTUM_CODERS-527C-AI-01/contracts/CarbonLedger.sol": {
+      "lastModificationDate": 1760469505092,
+      "contentHash": "b2cc460f9a64347626e49135b93f5090",
+      "sourceName": "contracts/CarbonLedger.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "CarbonLedger"
+      ]
+    }
+  }
+}
