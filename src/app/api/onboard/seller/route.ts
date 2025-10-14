@@ -16,9 +16,15 @@ export async function POST(req: NextRequest) {
   const {
     firmName,
     website,
+    organizationType,
+    location,
+    description,
   } = body ?? {};
 
   try {
+    // Store additional data in a temporary way until we can update the schema
+    const organizationDescription = description ? `Organization Type: ${organizationType || 'Not specified'}\nLocation: ${location || 'Not specified'}\nDescription: ${description}` : null;
+    
     await db.insert(sellerProfile).values({
       id: session.user.id as any,
       userId: session.user.id as any,

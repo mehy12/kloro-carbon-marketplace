@@ -27,6 +27,9 @@ const buyerSchema = z.object({
 const sellerSchema = z.object({
   firmName: z.string().min(1, "Required"),
   website: z.string().url().optional(),
+  organizationType: z.string().min(1, "Required"),
+  location: z.string().min(1, "Required"),
+  description: z.string().min(10, "Please provide at least 10 characters"),
 });
 
 type Role = "buyer" | "seller";
@@ -58,6 +61,9 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
     defaultValues: restoreDraft("seller", {
       firmName: "",
       website: "",
+      organizationType: "",
+      location: "",
+      description: "",
     }),
   });
 
@@ -85,7 +91,7 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
     if (res.ok) {
       clearDraft("seller");
       try { setRole("seller"); } catch {}
-      router.push("/seller-dashboard");
+      router.push("/seller-dashboard?tab=projects&onboarding=true");
     }
   };
 
@@ -244,26 +250,85 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
 {role === "seller" && (
         <Card>
           <CardContent className="p-4 space-y-4">
-            <div className="text-base font-semibold">Seller Details</div>
+            <div className="space-y-1">
+              <div className="text-base font-semibold">Organization Details</div>
+              <div className="text-sm text-muted-foreground">
+                Tell us about your organization to get started with carbon credit projects.
+              </div>
+            </div>
             <Form {...sellerForm}>
-              <form onSubmit={sellerForm.handleSubmit(onSubmitSeller)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField control={sellerForm.control} name="firmName" render={({ field }) => (
+              <form onSubmit={sellerForm.handleSubmit(onSubmitSeller)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={sellerForm.control} name="firmName" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Organization Name</FormLabel>
+                      <FormControl><Input {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={sellerForm.control} name="website" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website (optional)</FormLabel>
+                      <FormControl><Input placeholder="https://example.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={sellerForm.control} name="organizationType" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Organization Type</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select organization type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="renewable_energy">Renewable Energy</SelectItem>
+                            <SelectItem value="forestry">Forestry & Conservation</SelectItem>
+                            <SelectItem value="agriculture">Agriculture</SelectItem>
+                            <SelectItem value="waste_management">Waste Management</SelectItem>
+                            <SelectItem value="technology">Clean Technology</SelectItem>
+                            <SelectItem value="consulting">Environmental Consulting</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={sellerForm.control} name="location" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Primary Location</FormLabel>
+                      <FormControl><Input placeholder="e.g. California, USA" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <FormField control={sellerForm.control} name="description" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Firm/Organization Name</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <FormLabel>Organization Description</FormLabel>
+                    <FormControl>
+                      <textarea 
+                        className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Describe your organization and the types of carbon credit projects you develop..."
+                        {...field} 
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={sellerForm.control} name="website" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website (optional)</FormLabel>
-                    <FormControl><Input placeholder="https://example.com" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="md:col-span-2 flex justify-end gap-2">
+                
+                <div className="border-t pt-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-sm font-medium text-blue-900 mb-1">Next Steps</div>
+                    <div className="text-sm text-blue-800">
+                      After completing this form, you'll be guided to add your first carbon credit project and upload sustainability reports to calculate your credits.
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => persistDraft("seller", sellerForm.getValues())}>Save Draft</Button>
-                  <Button type="submit">Continue</Button>
+                  <Button type="submit">Create Organization & Continue</Button>
                 </div>
               </form>
             </Form>

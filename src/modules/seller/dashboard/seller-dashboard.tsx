@@ -20,10 +20,18 @@ export default function SellerDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [openAdd, setOpenAdd] = React.useState(false);
+  const [showOnboarding, setShowOnboarding] = React.useState(false);
 
   React.useEffect(() => {
     const q = searchParams.get("tab") ?? "overview";
+    const isOnboarding = searchParams.get("onboarding") === "true";
     setTab(q);
+    setShowOnboarding(isOnboarding);
+    
+    // If it's onboarding and they're on projects tab, show the add project dialog
+    if (isOnboarding && q === "projects") {
+      setTimeout(() => setOpenAdd(true), 500);
+    }
   }, [searchParams]);
 
   const onChange = (value: string) => {
@@ -34,6 +42,39 @@ export default function SellerDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
+      {showOnboarding && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">✓</div>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900 mb-1">Welcome to your Seller Dashboard!</div>
+                <div className="text-sm text-green-800 mb-3">
+                  You've successfully created your organization profile. To start selling carbon credits, you'll need to:
+                </div>
+                <div className="space-y-1 text-sm text-green-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                    <span><strong>Add a project</strong> - Create your first carbon credit project</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                    <span><strong>Upload reports</strong> - Add sustainability reports to calculate credits</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                    <span><strong>List credits</strong> - Make your credits available for purchase</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-4">
+                  <Button size="sm" onClick={() => setOpenAdd(true)}>Add Your First Project</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowOnboarding(false)}>Dismiss</Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <Tabs value={tab} onValueChange={onChange}>
         <div className="flex items-center justify-between">
           <TabsList>
