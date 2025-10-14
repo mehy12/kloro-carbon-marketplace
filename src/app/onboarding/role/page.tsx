@@ -12,16 +12,14 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { setRole } from "@/lib/role";
+import { ReportUploadSection } from "@/components/ui/report-upload-section";
 
 const buyerSchema = z.object({
   companyName: z.string().min(1, "Required"),
   industryType: z.string().min(1, "Required"),
   address: z.string().optional(),
-  // Carbon calculation fields
-  employeeCount: z.number().min(1, "Must have at least 1 employee"),
-  annualRevenue: z.number().min(0, "Revenue must be positive"),
-  energyConsumption: z.number().min(0, "Energy consumption must be positive"),
-  businessTravelDistance: z.number().min(0, "Travel distance must be positive"),
+  // Report upload fields
+  reportFiles: z.array(z.any()).optional(), // Will be handled by the upload component
 });
 
 const sellerSchema = z.object({
@@ -49,10 +47,7 @@ const buyerForm = useForm<z.infer<typeof buyerSchema>>({
       companyName: "",
       industryType: "",
       address: "",
-      employeeCount: 1,
-      annualRevenue: 0,
-      energyConsumption: 0,
-      businessTravelDistance: 0,
+      reportFiles: [],
     }),
   });
 
@@ -101,8 +96,8 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="space-y-1">
-            <div className="text-xl font-semibold">Tell us who you are</div>
-            <div className="text-sm text-muted-foreground">Choose your role to continue onboarding.</div>
+            <div className="text-xl font-semibold">What brings you to kloro?</div>
+            <div className="text-sm text-muted-foreground">Choose what you'd like to do to get started.</div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <RoleCard label="Buyer" active={role === "buyer"} onClick={() => setRoleState("buyer")} />
@@ -160,86 +155,42 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
                   </FormItem>
                 )} />
                 
-                {/* Carbon Footprint Calculation */}
+                {/* Carbon Footprint Assessment via Report Upload */}
                 <div className="space-y-4">
                   <div className="border-t pt-4">
                     <h3 className="text-base font-semibold mb-2">Carbon Footprint Assessment</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Help us calculate your company's carbon footprint and recommend the right amount of carbon credits.
+                      Upload your sustainability reports, and we'll automatically analyze and calculate your company's carbon footprint.
                     </p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={buyerForm.control} name="employeeCount" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Number of Employees</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    
-                    <FormField control={buyerForm.control} name="annualRevenue" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Annual Revenue (USD)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            step="1000"
-                            placeholder="e.g. 1000000"
-                            {...field} 
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    
-                    <FormField control={buyerForm.control} name="energyConsumption" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Annual Energy Consumption (kWh)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            step="1000"
-                            placeholder="e.g. 50000"
-                            {...field} 
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    
-                    <FormField control={buyerForm.control} name="businessTravelDistance" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Annual Business Travel (km)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            step="1000"
-                            placeholder="e.g. 25000"
-                            {...field} 
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
+                  <ReportUploadSection />
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-sm font-medium text-blue-900 mb-1">Supported Report Types</div>
+                    <div className="text-sm text-blue-800 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                        <span>GRI (Global Reporting Initiative) Reports</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                        <span>SASB (Sustainability Accounting Standards Board) Reports</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                        <span>CDP (Carbon Disclosure Project) Reports</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                        <span>ESG Reports and Annual Sustainability Reports</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
                   <Button type="button" variant="outline" onClick={() => persistDraft("buyer", buyerForm.getValues())}>Save Draft</Button>
-                  <Button type="submit">Calculate & Continue</Button>
+                  <Button type="submit">Analyze Reports & Continue</Button>
                 </div>
               </form>
             </Form>
@@ -340,10 +291,18 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
 }
 
 function RoleCard({ label, active, onClick }: { label: string; active?: boolean; onClick?: () => void }) {
+  const getDescription = (label: string) => {
+    if (label === "Buyer") {
+      return "Track my carbon emissions and offset them";
+    } else {
+      return "Sell carbon credits from my projects";
+    }
+  };
+
   return (
     <button onClick={onClick} className={`rounded-md border p-4 text-left hover:shadow transition ${active ? "border-emerald-500 bg-emerald-50" : ""}`}>
-      <div className="text-base font-medium">{label}</div>
-      <div className="text-xs text-muted-foreground">{label === "Buyer" ? "For companies purchasing credits" : "For project developers listing credits"}</div>
+      <div className="text-base font-medium">I want to {label === "Buyer" ? "track & offset" : "sell credits"}</div>
+      <div className="text-xs text-muted-foreground">{getDescription(label)}</div>
     </button>
   );
 }

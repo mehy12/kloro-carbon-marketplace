@@ -13,6 +13,7 @@ import Orders from "./components/orders";
 import Revenue from "./components/revenue";
 import Verification from "./components/verification";
 import Insights from "./components/insights";
+import SellerTransactions from "./components/transactions";
 import AddProjectDialog from "./components/add-project-dialog";
 
 export default function SellerDashboard() {
@@ -83,6 +84,7 @@ export default function SellerDashboard() {
             <TabsTrigger value="list">List Credits</TabsTrigger>
             <TabsTrigger value="listings">Listings</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="verification">Verification</TabsTrigger>
             <TabsTrigger value="insights">AI Insights</TabsTrigger>
@@ -98,6 +100,7 @@ export default function SellerDashboard() {
         <TabsContent value="list" className="mt-4"><ListCredits /></TabsContent>
         <TabsContent value="listings" className="mt-4"><MyListings /></TabsContent>
         <TabsContent value="orders" className="mt-4"><Orders /></TabsContent>
+        <TabsContent value="transactions" className="mt-4"><SellerTransactions /></TabsContent>
         <TabsContent value="revenue" className="mt-4"><Revenue /></TabsContent>
         <TabsContent value="verification" className="mt-4"><Verification /></TabsContent>
         <TabsContent value="insights" className="mt-4"><Insights /></TabsContent>

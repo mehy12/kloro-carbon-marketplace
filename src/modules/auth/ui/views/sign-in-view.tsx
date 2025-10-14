@@ -34,6 +34,14 @@ export default function SignInView() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  
+  // Get the current origin to build proper callback URLs
+  const getCallbackURL = (path: string) => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${path}`;
+    }
+    return path; // fallback for SSR
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,7 +58,7 @@ export default function SignInView() {
       {
         email: data.email,
         password: data.password,
-        callbackURL: "/",
+        callbackURL: getCallbackURL("/"),
       },
       {
 onSuccess: async () => {
@@ -75,11 +83,24 @@ onSuccess: async () => {
     authClient.signIn.social(
       {
         provider: provider,
-        callbackURL: "/",
+        callbackURL: getCallbackURL("/"),
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           setPending(false);
+          // Check if user has completed onboarding
+          const session = await authClient.getSession();
+          const userRole = ((session?.data as any)?.user?.role as "buyer" | "seller" | undefined);
+          
+          if (!userRole || userRole === "buyer") {
+            // If no role is set or default buyer role, redirect to role selection
+            router.push("/onboarding/role");
+          } else {
+            // User has a role, redirect to appropriate dashboard
+            const to = userRole === "seller" ? "/seller-dashboard" : "/buyer-dashboard";
+            try { setRole(userRole); } catch {}
+            router.push(to);
+          }
         },
         onError: ({ error }) => {
           setPending(false);

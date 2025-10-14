@@ -43,6 +43,14 @@ export default function SignUpView() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  
+  // Get the current origin to build proper callback URLs
+  const getCallbackURL = (path: string) => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${path}`;
+    }
+    return path; // fallback for SSR
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,7 +70,7 @@ authClient.signUp.email(
         name: data.name,
         email: data.email,
         password: data.password,
-        callbackURL: "/onboarding/role",
+        callbackURL: getCallbackURL("/onboarding/role"),
       },
       {
 onSuccess: () => {
@@ -83,11 +91,12 @@ onSuccess: () => {
     authClient.signIn.social(
       {
         provider: provider,
-        callbackURL: "/",
+        callbackURL: getCallbackURL("/onboarding/role"),
       },
       {
         onSuccess: () => {
           setPending(false);
+          router.push("/onboarding/role");
         },
         onError: ({ error }) => {
           setPending(false);

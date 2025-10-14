@@ -41,11 +41,6 @@ const buyerMenu = [
     href: "/transactions",
   },
   {
-    icon: LayoutDashboard,
-    label: "Compliance",
-    href: "/compliance",
-  },
-  {
     icon: BotIcon,
     label: "AI Insights",
     href: "/ai-insights",
@@ -56,7 +51,8 @@ const sellerMenu = [
   { icon: LayoutDashboard, label: "Overview", href: "/seller-dashboard?tab=overview" },
   { icon: LayoutDashboard, label: "My Projects", href: "/seller-dashboard?tab=projects" },
   { icon: LayoutDashboard, label: "List Credits", href: "/seller-dashboard?tab=list" },
-  { icon: LayoutDashboard, label: "Transactions", href: "/seller-dashboard?tab=orders" },
+  { icon: LayoutDashboard, label: "Orders", href: "/seller-dashboard?tab=orders" },
+  { icon: LayoutDashboard, label: "Transactions", href: "/seller-dashboard?tab=transactions" },
   { icon: LayoutDashboard, label: "Verification", href: "/seller-dashboard?tab=verification" },
   { icon: LayoutDashboard, label: "Revenue", href: "/seller-dashboard?tab=revenue" },
   { icon: BotIcon, label: "AI Insights", href: "/seller-dashboard?tab=insights" },

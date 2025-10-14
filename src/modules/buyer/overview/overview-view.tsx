@@ -1,11 +1,9 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingDown, TrendingUp, ShieldCheck, AlertTriangle, Leaf, Factory } from "lucide-react";
+import { TrendingDown, TrendingUp, Leaf, Factory, ShoppingCart, PieChart } from "lucide-react";
 import { useEffect, useState } from "react";
+import { CarbonFootprintBreakdown } from "@/components/ui/carbon-footprint-breakdown";
 
 type BuyerProfile = {
   calculatedCarbonFootprint: string;
@@ -52,7 +50,6 @@ export default function OverviewView() {
     recommendedCredits
   });
   
-  const compliant = true; // You can add logic here based on actual compliance status
   if (loading) {
     return (
       <div className="flex flex-col gap-4">
@@ -74,123 +71,63 @@ export default function OverviewView() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Carbon Footprint Summary Card */}
-      {buyerData && (
-        <Card className="border-emerald-200 bg-emerald-50/30">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-emerald-100">
-                <Factory className="h-6 w-6 text-emerald-700" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-emerald-900">Your Carbon Footprint Assessment</h3>
-                <p className="text-sm text-emerald-700">
-                  Based on your {buyerData.industry} business with {buyerData.employeeCount} employees
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-900">
-                  {carbonFootprint.toLocaleString()} tCO₂e
-                </div>
-                <div className="text-sm text-emerald-700">Annual emissions</div>
-              </div>
-            </div>
-            <div className="mt-4 p-4 rounded-lg bg-white border border-emerald-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Leaf className="h-5 w-5 text-emerald-600" />
-                  <span className="font-medium text-emerald-900">Recommended Credits</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-emerald-900">
-                    {recommendedCredits.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-emerald-600">credits needed</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
+    <div className="flex flex-col gap-6">
+      {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
-          title="Calculated Footprint" 
+          title="Total Footprint" 
           value={`${carbonFootprint.toLocaleString()} tCO₂e`} 
-          trend={buyerData?.industry || "Industry-based"} 
+          trend={buyerData?.industry || "Annual emissions"} 
+          icon={Factory}
         />
         <StatCard 
           title="Recommended Credits" 
           value={recommendedCredits.toLocaleString()} 
           trend="110% coverage" 
           trendUp 
+          icon={Leaf}
         />
-        <StatCard title="Owned Credits" value="0" trend="Start buying credits" />
-        <StatCard title="Retired Credits" value="0" trend="Offset your impact" />
+        <StatCard 
+          title="Owned Credits" 
+          value="0" 
+          trend="Start buying credits"
+          icon={ShoppingCart}
+        />
+        <StatCard 
+          title="Categories Analyzed" 
+          value="6" 
+          trend="From your reports"
+          icon={PieChart}
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Compliance Status</h3>
-              {compliant ? (
-                <Badge className="flex items-center gap-1" variant="default"><ShieldCheck className="size-4" /> Compliant</Badge>
-              ) : (
-                <Badge variant="destructive" className="flex items-center gap-1"><AlertTriangle className="size-4" /> At Risk</Badge>
-              )}
-            </div>
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Progress to Target</span>
-                <span>83%</span>
-              </div>
-              <Progress value={83} />
-              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
-                <div className="space-y-1">
-                  <div className="text-muted-foreground">Shortfall</div>
-                  <div className="font-medium">2,000 credits</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-muted-foreground">Deadline</div>
-                  <div className="font-medium">March 2026</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <h3 className="font-semibold">AI Recommendations</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Based on your {carbonFootprint.toLocaleString()} tCO₂e footprint, you need {recommendedCredits.toLocaleString()} credits annually.
-              </p>
-              <p className="text-sm font-medium text-emerald-700">
-                • Prioritize verified nature-based solutions<br/>
-                • Consider forestry and renewable energy credits<br/>
-                • Start with {Math.ceil(recommendedCredits * 0.25).toLocaleString()} credits this quarter
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm">Buy Credits</Button>
-              <Button variant="outline" size="sm">View Market</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Detailed Carbon Footprint Breakdown */}
+      <CarbonFootprintBreakdown totalFootprint={carbonFootprint || 581} />
 
+      {/* Quick Actions */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Quick Actions</h3>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Take Action</h3>
+            <p className="text-sm text-muted-foreground">Offset your carbon footprint</p>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm">Buy Credits</Button>
-            <Button size="sm" variant="outline">View Portfolio</Button>
-            <Button size="sm" variant="outline">Retire Credits</Button>
-            <Button size="sm" variant="outline">Generate Compliance Report</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button className="flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Buy Credits
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <PieChart className="h-4 w-4" />
+              View Market
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Factory className="h-4 w-4" />
+              Track Progress
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Leaf className="h-4 w-4" />
+              Retire Credits
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -198,11 +135,20 @@ export default function OverviewView() {
   );
 }
 
-function StatCard({ title, value, trend, trendUp }: { title: string; value: string; trend?: string; trendUp?: boolean }) {
+function StatCard({ title, value, trend, trendUp, icon: Icon }: { 
+  title: string; 
+  value: string; 
+  trend?: string; 
+  trendUp?: boolean;
+  icon?: React.ElementType;
+}) {
   return (
     <Card>
       <CardContent className="p-4 space-y-2">
-        <div className="text-sm text-muted-foreground">{title}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">{title}</div>
+          {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+        </div>
         <div className="text-2xl font-semibold">{value}</div>
         {trend && (
           <div className="flex items-center gap-1 text-xs">
