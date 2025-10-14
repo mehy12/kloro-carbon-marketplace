@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Download, ExternalLink } from "lucide-react";
+import { BlockchainBadge } from "@/components/ui/blockchain-badge";
+import { RefreshCw, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface Transaction {
@@ -22,6 +23,9 @@ interface Transaction {
   creditType: string;
   hasCertificate: boolean;
   certificateId: string | null;
+  // Blockchain fields
+  blockchainTxHash?: string | null;
+  registry?: string | null;
 }
 
 export default function TransactionsView() {
@@ -219,6 +223,7 @@ export default function TransactionsView() {
                 <TableHead>Unit Price</TableHead>
                 <TableHead>Total Value</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Blockchain</TableHead>
                 <TableHead>Counterparty</TableHead>
                 <TableHead>Certificate</TableHead>
               </TableRow>
@@ -253,6 +258,12 @@ export default function TransactionsView() {
                       <Badge className={getStatusColor(txn.status)}>
                         {txn.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <BlockchainBadge 
+                        blockchainTxHash={txn.blockchainTxHash}
+                        size="sm"
+                      />
                     </TableCell>
                     <TableCell>{txn.counterparty}</TableCell>
                     <TableCell>

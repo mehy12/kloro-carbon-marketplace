@@ -6,7 +6,7 @@ const path = require('path');
 
 // Configuration
 const config = {
-  RPC_URL: process.env.RPC_URL || 'https://rpc-mumbai.maticvigil.com/',
+  RPC_URL: process.env.RPC_URL || 'https://endpoints.omniatech.io/v1/matic/mumbai/public',
   CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
   // You'll need to add the ABI when contract is compiled
 };

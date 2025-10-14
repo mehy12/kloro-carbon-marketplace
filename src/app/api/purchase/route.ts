@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
 import { buyerProfile, carbonCredit, project, sellerProfile, transaction } from "@/db/schema";
 import { z } from "zod";
+import { recordBlockchainTransaction, isBlockchainEnabled, DEFAULT_ADDRESSES } from "@/lib/blockchain";
 
 const BodySchema = z.object({
   creditId: z.string().min(1),
@@ -68,26 +69,69 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Insufficient available quantity" }, { status: 400 });
     }
 
+    // Calculate total price
+    const total = (Number(credit.pricePerCredit) || 0) * qty;
+    const transactionId = crypto.randomUUID();
+    
+    // Generate certificate URL (placeholder for now)
+    const certificateUrl = `https://kloro.app/certificates/${transactionId}`;
+    
+    let blockchainTxHash: string | null = null;
+    
+    // Try to record on blockchain if configured
+    if (isBlockchainEnabled()) {
+      try {
+        console.log("🔗 Recording transaction on blockchain...");
+        
+        blockchainTxHash = await recordBlockchainTransaction({
+          buyer: DEFAULT_ADDRESSES.BUYER_WALLET, // In production, use actual buyer wallet
+          seller: DEFAULT_ADDRESSES.SELLER_WALLET, // In production, use actual seller wallet  
+          credits: qty,
+          projectId: proj.id,
+          registry: "Verra VCS", // Could be fetched from project data
+          certificateUrl,
+          priceUsd: Math.round(total * 100), // Convert to cents
+        });
+        
+        console.log("✅ Blockchain transaction recorded:", blockchainTxHash);
+      } catch (blockchainError: any) {
+        console.error("⚠️ Blockchain recording failed:", blockchainError.message);
+        // Continue with database transaction even if blockchain fails
+        // In production, you might want to handle this differently
+      }
+    } else {
+      console.log("⚠️ Blockchain not configured, skipping blockchain recording");
+    }
+    
     // Update available quantity (simple non-transactional update for demo)
     await db
       .update(carbonCredit)
       .set({ availableQuantity: (available - qty) as any })
       .where(eq(carbonCredit.id, credit.id as any));
 
-    const total = (Number(credit.pricePerCredit) || 0) * qty;
-    const id = crypto.randomUUID();
-
+    // Insert transaction with blockchain data
     await db.insert(transaction).values({
-      id: id as any,
+      id: transactionId as any,
       buyerId: buyer.id as any,
       sellerId: proj.sellerId as any,
       creditId: credit.id as any,
       quantity: qty as any,
       totalPrice: String(total) as any,
       status: 'completed' as any,
+      // Blockchain fields
+      blockchainTxHash: blockchainTxHash as any,
+      registry: "Verra VCS" as any,
+      certificateUrl: certificateUrl as any,
+      projectId: proj.id as any,
     });
 
-    return NextResponse.json({ ok: true, transactionId: id });
+    return NextResponse.json({ 
+      ok: true, 
+      transactionId,
+      blockchainTxHash,
+      certificateUrl,
+      explorerUrl: blockchainTxHash ? `https://mumbai.polygonscan.com/tx/${blockchainTxHash}` : null
+    });
   } catch (e: any) {
     console.error(e);
     return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });

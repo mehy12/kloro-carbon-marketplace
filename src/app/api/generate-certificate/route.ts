@@ -156,6 +156,7 @@ export async function POST(req: NextRequest) {
       `Quantity: ${txn.transaction.quantity.toLocaleString()} carbon credits`,
       `Credit Type: ${txn.project?.type || 'Unknown'}`,
       `Project: ${txn.project?.name || 'N/A'}`,
+      `Registry: ${txn.transaction.registry || 'N/A'}`,
       `Total Value: $${parseFloat(txn.transaction.totalPrice).toLocaleString()}`,
       `Status: ${txn.transaction.status.toUpperCase()}`
     ];
@@ -179,18 +180,72 @@ export async function POST(req: NextRequest) {
     pdf.text(`Buyer: ${txn.buyer?.companyName || 'N/A'}`, 25, 190);
     pdf.text(`Seller: ${txn.seller?.organizationName || 'N/A'}`, 25, 198);
 
-    // Verification Section
+    // Blockchain Verification Section
     pdf.setTextColor(...primaryColor);
     pdf.setFontSize(14);
     pdf.setFont(undefined, 'bold');
-    pdf.text('VERIFICATION', 25, 220);
+    pdf.text('BLOCKCHAIN VERIFICATION', 25, 220);
     
     pdf.setTextColor(...textColor);
     pdf.setFont(undefined, 'normal');
     pdf.setFontSize(10);
-    pdf.text('Verification URL:', 25, 230);
+    
+    if (txn.transaction.blockchainTxHash) {
+      // Blockchain verified transaction
+      pdf.setFillColor(240, 253, 244); // Light green background
+      pdf.rect(20, 225, 170, 25, 'F');
+      
+      pdf.setTextColor(...secondaryColor);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('✓ BLOCKCHAIN VERIFIED', 25, 233);
+      
+      pdf.setTextColor(...textColor);
+      pdf.setFont(undefined, 'normal');
+      pdf.setFontSize(9);
+      pdf.text('Transaction Hash:', 25, 240);
+      pdf.setFont('courier', 'normal');
+      pdf.text(txn.transaction.blockchainTxHash.substring(0, 40) + '...', 25, 246);
+      
+      pdf.setFont(undefined, 'normal');
+      pdf.text('Polygon Testnet Explorer:', 25, 252);
+      pdf.setTextColor(...primaryColor);
+      pdf.setFontSize(8);
+      const explorerUrl = `https://mumbai.polygonscan.com/tx/${txn.transaction.blockchainTxHash}`;
+      pdf.text(explorerUrl, 25, 258);
+      
+      // Add QR code placeholder (simple text for now)
+      pdf.setTextColor(...textColor);
+      pdf.setFontSize(8);
+      pdf.text('QR Code: Scan to verify on blockchain explorer', 130, 240);
+      
+      // Draw QR code placeholder box
+      pdf.setDrawColor(...lightGray);
+      pdf.rect(150, 230, 25, 25);
+      pdf.setFontSize(6);
+      pdf.text('QR', 160, 245, { align: 'center' });
+      
+    } else {
+      // Database only verification
+      pdf.setFillColor(254, 252, 232); // Light yellow background
+      pdf.rect(20, 225, 170, 20, 'F');
+      
+      pdf.setTextColor(180, 83, 9); // Orange color
+      pdf.setFont(undefined, 'bold');
+      pdf.text('⚠ DATABASE VERIFIED ONLY', 25, 233);
+      
+      pdf.setTextColor(...textColor);
+      pdf.setFont(undefined, 'normal');
+      pdf.setFontSize(9);
+      pdf.text('This transaction was recorded in our database but not on blockchain.', 25, 240);
+    }
+    
+    // Certificate verification URL
+    pdf.setTextColor(...textColor);
+    pdf.setFontSize(9);
+    pdf.text('Certificate Verification:', 25, 268);
     pdf.setTextColor(...primaryColor);
-    pdf.text(cert[0].verificationUrl, 25, 238);
+    pdf.setFontSize(8);
+    pdf.text(cert[0].verificationUrl, 25, 274);
 
     // Add decorative elements
     pdf.setDrawColor(...secondaryColor);

@@ -91,6 +91,9 @@ export async function GET(req: NextRequest) {
       creditType: txn.project?.type || "Unknown",
       hasCertificate: !!txn.certificate,
       certificateId: txn.certificate?.certId || null,
+      // Blockchain fields
+      blockchainTxHash: txn.transaction.blockchainTxHash,
+      registry: txn.transaction.registry,
     }));
 
     return NextResponse.json({

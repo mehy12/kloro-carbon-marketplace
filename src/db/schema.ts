@@ -130,6 +130,11 @@ export const transaction = pgTable("transaction", {
     totalPrice: decimal('total_price', { precision: 12, scale: 2 }).notNull(),
     status: transactionStatusEnum('status').default('pending').notNull(),
     transactionDate: timestamp('transaction_date').defaultNow().notNull(),
+    // Blockchain integration fields
+    blockchainTxHash: text('blockchain_tx_hash'), // Polygon transaction hash
+    registry: text('registry'), // e.g., "Verra", "Gold Standard"
+    certificateUrl: text('certificate_url'), // URL to generated certificate
+    projectId: text('project_id_string'), // String version for blockchain (different from FK)
 });
 
 export const certificateRecord = pgTable("certificate_record", {

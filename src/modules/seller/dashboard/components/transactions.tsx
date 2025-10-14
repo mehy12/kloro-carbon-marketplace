@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BlockchainBadge } from "@/components/ui/blockchain-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RefreshCw, Download, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -21,6 +22,9 @@ interface Transaction {
   creditType: string;
   hasCertificate: boolean;
   certificateId: string | null;
+  // Blockchain fields
+  blockchainTxHash?: string | null;
+  registry?: string | null;
 }
 
 export default function SellerTransactions() {
@@ -206,13 +210,14 @@ export default function SellerTransactions() {
                 <TableHead>Unit Price</TableHead>
                 <TableHead>Revenue</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Blockchain</TableHead>
                 <TableHead>Certificate</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     No sales transactions found
                   </TableCell>
                 </TableRow>
@@ -234,6 +239,12 @@ export default function SellerTransactions() {
                       <Badge className={getStatusColor(txn.status)}>
                         {txn.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <BlockchainBadge 
+                        blockchainTxHash={txn.blockchainTxHash}
+                        size="sm"
+                      />
                     </TableCell>
                     <TableCell>
                       {txn.status === "completed" && (
