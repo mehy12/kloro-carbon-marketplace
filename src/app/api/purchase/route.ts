@@ -5,7 +5,9 @@ import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
 import { buyerProfile, carbonCredit, project, sellerProfile, transaction } from "@/db/schema";
 import { z } from "zod";
-import { recordBlockchainTransaction, isBlockchainEnabled, DEFAULT_ADDRESSES } from "@/lib/blockchain";
+import { recordBlockchainTransaction, isBlockchainEnabled, DEFAULT_ADDRESSES, DEAD_ADDRESS, getBlockchainExplorerUrl } from "@/lib/blockchain";
+import { isErc1155Configured, mint1155, baseSepoliaTxUrl } from "@/lib/web3/server";
+import { isTenderlyConfigured, tenderlySimulateTx } from "@/lib/web3/tenderly";
 
 const BodySchema = z.object({
   creditId: z.string().min(1),
@@ -76,32 +78,61 @@ export async function POST(req: NextRequest) {
     // Generate certificate URL (placeholder for now)
     const certificateUrl = `https://kloro.app/certificates/${transactionId}`;
     
-    let blockchainTxHash: string | null = null;
-    
-    // Try to record on blockchain if configured
+    let erc1155TxHash: string | null = null;
+    let ledgerTxHash: string | null = null;
+
+    // Try new ERC-1155 mint on Base Sepolia if configured
+    if (isErc1155Configured()) {
+      try {
+        const buyerWallet = (json?.walletAddress as string | undefined)?.toLowerCase() as `0x${string}` | undefined;
+        const to = (buyerWallet || DEAD_ADDRESS.toLowerCase()) as `0x${string}`;
+
+        // Ensure credit has a tokenId; if not, derive deterministically from UUID and persist
+        let tokenId: string | null = (credit as any).tokenId || null;
+        if (!tokenId) {
+          const hex = String(credit.id).replace(/-/g, "");
+          // take first 32 hex chars as uint256 string
+          tokenId = BigInt("0x" + hex.slice(0, 32)).toString();
+          await db.update(carbonCredit).set({ tokenId: tokenId as any }).where(eq(carbonCredit.id, credit.id as any));
+        }
+        const hash = await mint1155(to, BigInt(tokenId), BigInt(qty));
+        erc1155TxHash = hash as any;
+      } catch (e: any) {
+        console.error("⚠️ ERC-1155 mint failed:", e?.message || e);
+      }
+    }
+
+    // Always record a transparent ledger event if configured
     if (isBlockchainEnabled()) {
       try {
-        console.log("🔗 Recording transaction on blockchain...");
-        
-        blockchainTxHash = await recordBlockchainTransaction({
-          buyer: DEFAULT_ADDRESSES.BUYER_WALLET, // In production, use actual buyer wallet
-          seller: DEFAULT_ADDRESSES.SELLER_WALLET, // In production, use actual seller wallet  
+        ledgerTxHash = await recordBlockchainTransaction({
+          buyer: (json?.walletAddress || DEAD_ADDRESS) as string,
+          seller: DEFAULT_ADDRESSES.SELLER_WALLET,
           credits: qty,
           projectId: proj.id,
-          registry: "Verra VCS", // Could be fetched from project data
+          registry: "Verra VCS",
           certificateUrl,
-          priceUsd: Math.round(total * 100), // Convert to cents
+          priceUsd: Math.round(total * 100),
         });
-        
-        console.log("✅ Blockchain transaction recorded:", blockchainTxHash);
-      } catch (blockchainError: any) {
-        console.error("⚠️ Blockchain recording failed:", blockchainError.message);
-        // Continue with database transaction even if blockchain fails
-        // In production, you might want to handle this differently
+      } catch (e: any) {
+        console.error("⚠️ Ledger record failed:", e?.message || e);
       }
-    } else {
-      console.log("⚠️ Blockchain not configured, skipping blockchain recording");
     }
+
+    // If we still don't have a link, simulate on Tenderly for a shareable URL
+    let simulationUrl: string | null = null;
+    if (!ledgerTxHash && !erc1155TxHash && isTenderlyConfigured()) {
+      try {
+        const from = (process.env.DEMO_FROM_ADDRESS || DEAD_ADDRESS) as `0x${string}`;
+        const sim = await tenderlySimulateTx({ from, to: DEAD_ADDRESS as any, data: "0x", value: "0x0" });
+        simulationUrl = sim.publicUrl || null;
+      } catch (e: any) {
+        console.error("⚠️ Tenderly simulation failed:", e?.message || e);
+      }
+    }
+
+    // Fallback/compatibility: ledger-only record on Polygon if configured
+    // legacy fallback removed in favor of explicit ledgerTxHash above
     
     // Update available quantity (simple non-transactional update for demo)
     await db
@@ -116,21 +147,32 @@ export async function POST(req: NextRequest) {
       sellerId: proj.sellerId as any,
       creditId: credit.id as any,
       quantity: qty as any,
-      totalPrice: String(total) as any,
+      totalPrice: total.toFixed(2) as any,
       status: 'completed' as any,
       // Blockchain fields
-      blockchainTxHash: blockchainTxHash as any,
+      blockchainTxHash: (ledgerTxHash || erc1155TxHash) as any,
+      chainId: (erc1155TxHash ? 84532 : null) as any,
+      walletAddress: (json?.walletAddress || DEAD_ADDRESS) as any,
+      contractAddress: process.env.ERC1155_CONTRACT_ADDRESS as any,
+      tokenId: (credit as any).tokenId as any,
+      retiredOnChainAt: null as any,
       registry: "Verra VCS" as any,
       certificateUrl: certificateUrl as any,
       projectId: proj.id as any,
     });
 
+    const ledgerExplorerUrl = ledgerTxHash ? getBlockchainExplorerUrl(ledgerTxHash) : null;
+    const erc1155ExplorerUrl = erc1155TxHash ? baseSepoliaTxUrl(erc1155TxHash as any) : null;
+
     return NextResponse.json({ 
       ok: true, 
       transactionId,
-      blockchainTxHash,
+      ledgerTxHash,
+      erc1155TxHash,
       certificateUrl,
-      explorerUrl: blockchainTxHash ? `https://mumbai.polygonscan.com/tx/${blockchainTxHash}` : null
+      explorerUrl: ledgerExplorerUrl || erc1155ExplorerUrl || simulationUrl,
+      ledgerExplorerUrl,
+      erc1155ExplorerUrl,
     });
   } catch (e: any) {
     console.error(e);

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CheckCircle } from "lucide-react";
+import { useAccount } from "wagmi";
 
 // Types for the project and seller
 type Project = {
@@ -46,6 +47,8 @@ export default function BuyCreditsModal({
   onClose: () => void;
   project: Project | null;
 }) {
+  const { address } = useAccount();
+
   // Mock sellers for this project (could be fetched based on project.id)
   const sellers: Seller[] = useMemo(
     () => [
@@ -118,7 +121,7 @@ export default function BuyCreditsModal({
       const res = await fetch('/api/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ creditId: project.id, quantity: qty })
+        body: JSON.stringify({ creditId: project.id, quantity: qty, walletAddress: address })
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {

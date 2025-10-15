@@ -6,6 +6,7 @@ import { clearRole, getRole } from "@/lib/role";
 import DashboardUserButton from "@/modules/dashboard/dashboard-user-button";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import ConnectWalletButton from "@/components/web3/ConnectWalletButton";
 
 export default function DashboardHeader({ title, linkLabel, linkHref }: { title?: string; linkLabel?: string; linkHref?: string }) {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function DashboardHeader({ title, linkLabel, linkHref }: { title?
             {linkLabel}
           </Link>
         )}
+        <ConnectWalletButton />
         <Button variant="outline" size="sm" onClick={onLogout}>Logout</Button>
         <DashboardUserButton />
       </div>

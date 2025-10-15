@@ -238,7 +238,9 @@ export function getBlockchainExplorerUrl(txHash: string): string {
 
 // Default wallet addresses for development (these should be overridden in production)
 export const DEFAULT_ADDRESSES = {
-  // These are placeholder addresses - replace with actual wallet addresses
-  BUYER_WALLET: "0x742dE5BB9f8D31BeB6c82Aa2D1b9E6a4F73e9E5F", // Example buyer address
-  SELLER_WALLET: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", // Example seller address
+  // Demo: dead address default so tx is verifiable on-chain without a real wallet
+  BUYER_WALLET: "0x000000000000000000000000000000000000dEaD",
+  SELLER_WALLET: "0x000000000000000000000000000000000000dEaD",
 } as const;
+
+export const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD" as const;

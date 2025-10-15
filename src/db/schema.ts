@@ -118,6 +118,9 @@ export const carbonCredit = pgTable("carbon_credit", {
     availableQuantity: integer('available_quantity').notNull(),
     pricePerCredit: decimal('price_per_credit', { precision: 10, scale: 2 }).notNull(),
     status: creditStatusEnum('status').default('available').notNull(),
+    // On-chain metadata
+    tokenId: text('token_id'), // uint256 string
+    contractAddress: text('contract_address'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -131,10 +134,15 @@ export const transaction = pgTable("transaction", {
     status: transactionStatusEnum('status').default('pending').notNull(),
     transactionDate: timestamp('transaction_date').defaultNow().notNull(),
     // Blockchain integration fields
-    blockchainTxHash: text('blockchain_tx_hash'), // Polygon transaction hash
-    registry: text('registry'), // e.g., "Verra", "Gold Standard"
-    certificateUrl: text('certificate_url'), // URL to generated certificate
-    projectId: text('project_id_string'), // String version for blockchain (different from FK)
+    blockchainTxHash: text('blockchain_tx_hash'),
+    chainId: integer('chain_id'),
+    walletAddress: text('wallet_address'), // buyer wallet who receives tokens
+    contractAddress: text('contract_address'),
+    tokenId: text('token_id'), // uint256 string
+    retiredOnChainAt: timestamp('retired_on_chain_at'),
+    registry: text('registry'),
+    certificateUrl: text('certificate_url'),
+    projectId: text('project_id_string'),
 });
 
 export const certificateRecord = pgTable("certificate_record", {
