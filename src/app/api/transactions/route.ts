@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { 
-  transaction, 
-  buyerProfile, 
-  sellerProfile, 
-  carbonCredit, 
-  project, 
-  certificateRecord 
+import {
+  transaction,
+  buyerProfile,
+  sellerProfile,
+  carbonCredit,
+  project,
+  certificateRecord
 } from "@/db/schema";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const hdrs = await headers();
     const session = await auth.api.getSession({ headers: hdrs });
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       unitPrice: parseFloat(txn.transaction.totalPrice) / txn.transaction.quantity,
       totalValue: parseFloat(txn.transaction.totalPrice),
       status: txn.transaction.status,
-      counterparty: userRole === "buyer" 
+      counterparty: userRole === "buyer"
         ? txn.seller?.organizationName || "Unknown Seller"
         : txn.buyer?.companyName || "Unknown Buyer",
       projectName: txn.project?.name || "N/A",
@@ -102,11 +102,19 @@ export async function GET(req: NextRequest) {
       lastUpdated: new Date().toISOString(),
     });
 
-  } catch (error: any) {
-    console.error('Transactions API error:', error);
-    return NextResponse.json({ 
-      error: "Failed to fetch transactions", 
-      details: error.message 
-    }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("Transactions API error:", error);
+
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+
+    return NextResponse.json(
+      {
+        error: "Failed to fetch transactions",
+        details: message,
+      },
+      { status: 500 }
+    );
   }
+
 }

@@ -4,15 +4,15 @@ Kloro is a comprehensive carbon credit marketplace that combines AI-powered carb
 
 ## ✨ Features
 
-### 🤖 AI-Powered Carbon Analysis
+### 🧮 Intelligent Carbon Analysis
 - **Smart Report Processing**: Upload sustainability reports (GRI, SASB, CDP, ESG) for automatic carbon footprint calculation
 - **Industry Benchmarking**: Compare your emissions against industry averages
-- **Intelligent Recommendations**: AI-suggested reduction opportunities and credit purchasing strategies
+- **Intelligent Recommendations**: Data-driven reduction opportunities and credit purchasing strategies
 
 ### 🛒 Carbon Credit Marketplace
 - **Verified Credits**: Browse credits from Gold Standard, Verra, and other certified registries
 - **Real-time Market Data**: Live pricing and availability updates
-- **Smart Matching**: AI recommendations based on your industry and requirements
+- **Smart Matching**: Industry-specific recommendations based on your requirements
 
 ### 🔗 Blockchain Integration
 - **Immutable Records**: All transactions recorded on Polygon blockchain
@@ -36,7 +36,7 @@ Kloro is a comprehensive carbon credit marketplace that combines AI-powered carb
 - **Database**: PostgreSQL (Neon) with Drizzle ORM
 - **APIs**: Next.js API routes
 - **Authentication**: JWT-based sessions
-- **File Processing**: AI-powered document analysis
+- **File Processing**: Local AI via Ollama (optional, with rule-based fallback)
 
 ### Blockchain
 - **Network**: Polygon Mumbai Testnet
@@ -75,25 +75,6 @@ Kloro is a comprehensive carbon credit marketplace that combines AI-powered carb
    BETTER_AUTH_SECRET="your-secret-key"
    BETTER_AUTH_URL="http://localhost:3000"
 
-   # OAuth (optional)
-   GOOGLE_CLIENT_ID="your-google-client-id"
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   GITHUB_CLIENT_ID="your-github-client-id"
-   GITHUB_CLIENT_SECRET="your-github-client-secret"
-
-   # Blockchain (for production features)
-   RPC_URL="https://polygon-mumbai.g.alchemy.com/v2/your-key"
-   PRIVATE_KEY="your-wallet-private-key"
-   CONTRACT_ADDRESS="deployed-contract-address"
-
-   # AI (optional)
-   GEMINI_API_KEY="your-gemini-api-key"
-   ```
-
-4. **Database Setup**
-   ```bash
-   npm run db:push
-   ```
 
 5. **Seed Sample Data** (optional)
    ```bash

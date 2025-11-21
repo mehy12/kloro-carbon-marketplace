@@ -4,13 +4,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaGithub, FaGoogle } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 
 import { authClient } from "@/lib/auth-client";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import React, { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { setRole } from "@/lib/role";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
@@ -30,14 +29,28 @@ const formSchema = z.object({
   password: z.string().min(1, { message: "Password is required" }),
 });
 
+type UserRole = "buyer" | "seller";
+
+interface SessionUser {
+  role?: UserRole;
+}
+
+interface SessionData {
+  user?: SessionUser;
+}
+
+interface SessionResult {
+  data?: SessionData | null;
+}
+
 export default function SignInView() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  
+
   // Get the current origin to build proper callback URLs
   const getCallbackURL = (path: string) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return `${window.location.origin}${path}`;
     }
     return path; // fallback for SSR
@@ -61,12 +74,21 @@ export default function SignInView() {
         callbackURL: getCallbackURL("/"),
       },
       {
-onSuccess: async () => {
+        onSuccess: async () => {
           setPending(false);
           // Fetch session to get role reliably
           const s = await authClient.getSession();
-          const userRole = ((s?.data as any)?.user?.role as "buyer" | "seller" | undefined) ?? "buyer";
-          try { setRole(userRole); } catch {}
+          const session = s as SessionResult | null | undefined;
+
+          const userRole: UserRole =
+            (session?.data?.user?.role as UserRole | undefined) ?? "buyer";
+
+          try {
+            setRole(userRole);
+          } catch {
+            // ignore storage errors
+          }
+
           const to = userRole === "seller" ? "/seller-dashboard" : "/buyer-dashboard";
           router.push(to);
         },
@@ -77,6 +99,7 @@ onSuccess: async () => {
       }
     );
   };
+
   const onSocial = (provider: "google" | "github") => {
     setError(null);
     setPending(true);
@@ -89,16 +112,22 @@ onSuccess: async () => {
         onSuccess: async () => {
           setPending(false);
           // Check if user has completed onboarding
-          const session = await authClient.getSession();
-          const userRole = ((session?.data as any)?.user?.role as "buyer" | "seller" | undefined);
-          
+          const sessionRaw = await authClient.getSession();
+          const session = sessionRaw as SessionResult | null | undefined;
+
+          const userRole = session?.data?.user?.role as UserRole | undefined;
+
           if (!userRole || userRole === "buyer") {
             // If no role is set or default buyer role, redirect to role selection
             router.push("/onboarding/role");
           } else {
             // User has a role, redirect to appropriate dashboard
             const to = userRole === "seller" ? "/seller-dashboard" : "/buyer-dashboard";
-            try { setRole(userRole); } catch {}
+            try {
+              setRole(userRole);
+            } catch {
+              // ignore storage errors
+            }
             router.push(to);
           }
         },

@@ -29,7 +29,8 @@ Environment and setup
   - DATABASE_URL (used by src/db/index.ts and drizzle.config.ts)
   - GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET (used by src/lib/auth.ts)
   - GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (used by src/lib/auth.ts)
-  - GEMINI_API_KEY (optional; used by src/lib/gemini.ts for AI insights; falls back if missing)
+  - OLLAMA_URL (optional; defaults to http://localhost:11434; used by src/lib/ollama.ts for local AI)
+  - OLLAMA_MODEL (optional; defaults to phi3; model for Ollama to use for insights)
 - Drizzle config (drizzle.config.ts) loads dotenv, so values in a .env file will be picked up for DB tasks. Next.js also supports .env.local for runtime. Ensure these variables are available when running dev/build/start and DB commands.
 
 High-level architecture
@@ -45,7 +46,7 @@ High-level architecture
     - Projects: /api/projects (GET seller projects, POST create project)
     - Purchase: /api/purchase (POST buyer purchases a credit; updates inventory and creates transaction)
     - User: /api/me (GET current user with role-specific profile)
-    - Market insights: /api/market-insights (GET AI-generated insights via Gemini; graceful fallback without key)
+    - Market insights: /api/market-insights (GET local AI-generated insights via Ollama; graceful fallback to rule-based insights)
 
 - Authentication
   - Server configuration (src/lib/auth.ts): betterAuth with GitHub and Google social providers plus email/password. Connects to Postgres using drizzleAdapter(db, { provider: "pg", schema }). Adds a user "role" field with default "buyer".
@@ -71,7 +72,7 @@ High-level architecture
 
 Operational notes
 - First run (local):
-  1) Create .env with DATABASE_URL and OAuth client credentials (GitHub/Google) if you intend to use social sign-in. With only email/password enabled, the DB is still required. Optionally add GEMINI_API_KEY for AI.
+  1) Create .env with DATABASE_URL and OAuth client credentials (GitHub/Google) if you intend to use social sign-in. With only email/password enabled, the DB is still required. Optionally add OLLAMA_URL and OLLAMA_MODEL for local AI features.
   2) Apply schema: npm run db:push
   3) (Optional) Seed sample data: npx tsx src/db/seed.ts
   4) Start dev: npm run dev, then open http://localhost:3000
@@ -82,4 +83,4 @@ References pulled into this file
 - drizzle.config.ts: DB config and dotenv behavior.
 - package.json scripts: dev, build, start, lint, db:push, db:studio.
 - tsconfig.json: path alias @/* to src/*.
-- Key source files: App Router pages/layouts, auth (server/client), DB schema/connection, buyer module (overview), UI system, and AI integration (src/lib/gemini.ts).
+- Key source files: App Router pages/layouts, auth (server/client), DB schema/connection, buyer module (overview), UI system, and local AI integration (src/lib/ollama.ts).

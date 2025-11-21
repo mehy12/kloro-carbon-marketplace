@@ -7,27 +7,45 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+type ListingStatus = "available" | "sold" | "retired";
+
+type Listing = {
+  id: string;
+  projectId: string;
+  projectName?: string | null;
+  availableQuantity: number;
+  pricePerCredit: number;
+  status: ListingStatus;
+};
+
 export default function MyListings() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
     const res = await fetch("/api/credits/mine");
-    const data = await res.json();
+    const data = (await res.json()) as { listings?: Listing[] };
     setItems(data.listings ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
-  const onSave = async (id: string, changes: { pricePerCredit?: number; availableQuantity?: number; status?: string }) => {
+  const onSave = async (
+    id: string,
+    changes: { pricePerCredit?: number; availableQuantity?: number; status?: ListingStatus },
+  ) => {
     const res = await fetch(`/api/credits/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(changes),
     });
-    if (res.ok) load();
+    if (res.ok) {
+      void load();
+    }
   };
 
   return (
@@ -35,7 +53,9 @@ export default function MyListings() {
       <CardContent className="p-0">
         <div className="p-4 flex items-center justify-between">
           <div className="text-base font-semibold">My Listings</div>
-          <Button variant="outline" onClick={load}>Refresh</Button>
+          <Button variant="outline" onClick={load}>
+            Refresh
+          </Button>
         </div>
         <Table>
           <TableHeader>
@@ -49,9 +69,17 @@ export default function MyListings() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={5} className="text-sm text-muted-foreground">Loading…</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                  Loading…
+                </TableCell>
+              </TableRow>
             ) : items.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-sm text-muted-foreground">No listings yet</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                  No listings yet
+                </TableCell>
+              </TableRow>
             ) : (
               items.map((l) => (
                 <TableRow key={l.id}>
@@ -60,9 +88,11 @@ export default function MyListings() {
                     <Input
                       inputMode="numeric"
                       defaultValue={Number(l.availableQuantity)}
-                      onBlur={(e)=>{
+                      onBlur={(e) => {
                         const v = Number(e.target.value.replace(/[^0-9]/g, "")) || 0;
-                        if (v !== Number(l.availableQuantity)) onSave(l.id, { availableQuantity: v });
+                        if (v !== Number(l.availableQuantity)) {
+                          void onSave(l.id, { availableQuantity: v });
+                        }
                       }}
                     />
                   </TableCell>
@@ -70,15 +100,22 @@ export default function MyListings() {
                     <Input
                       inputMode="numeric"
                       defaultValue={Number(l.pricePerCredit)}
-                      onBlur={(e)=>{
+                      onBlur={(e) => {
                         const v = Number(e.target.value.replace(/[^0-9.]/g, "")) || 0;
-                        if (v !== Number(l.pricePerCredit)) onSave(l.id, { pricePerCredit: v });
+                        if (v !== Number(l.pricePerCredit)) {
+                          void onSave(l.id, { pricePerCredit: v });
+                        }
                       }}
                     />
                   </TableCell>
                   <TableCell>
-                    <Select defaultValue={l.status} onValueChange={(v)=>onSave(l.id, { status: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select
+                      defaultValue={l.status}
+                      onValueChange={(v) => void onSave(l.id, { status: v as ListingStatus })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="available">Available</SelectItem>
                         <SelectItem value="sold">Sold</SelectItem>
@@ -87,7 +124,15 @@ export default function MyListings() {
                     </Select>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" onClick={()=>onSave(l.id, { status: l.status === "available" ? "retired" : "available" })}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        void onSave(l.id, {
+                          status: l.status === "available" ? "retired" : "available",
+                        })
+                      }
+                    >
                       {l.status === "available" ? "Unlist" : "Relist"}
                     </Button>
                   </TableCell>

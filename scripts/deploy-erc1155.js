@@ -1,4 +1,4 @@
-const { ethers } = require("hardhat");
+import { ethers } from "hardhat";
 
 async function main() {
   console.log("🚀 Deploying CarbonCredit1155 to Base Sepolia...");
@@ -6,7 +6,7 @@ async function main() {
   let [first] = await ethers.getSigners();
   let deployer = first;
   if (!deployer && process.env.PRIVATE_KEY) {
-    const { ethers: E } = require("hardhat");
+
     deployer = new E.Wallet(process.env.PRIVATE_KEY, E.provider);
   }
   if (!deployer) throw new Error("No signer available. Set PRIVATE_KEY in .env when using localhost/Ganache.");

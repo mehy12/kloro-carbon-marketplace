@@ -2,12 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Factory, 
-  Zap, 
-  Car, 
-  Trash2, 
-  Plane, 
+import {
+  Factory,
+  Zap,
+  Car,
+  Trash2,
+  Plane,
   Building,
   Droplets,
   Leaf
@@ -79,9 +79,9 @@ const defaultCategories: EmissionCategory[] = [
   }
 ];
 
-export function CarbonFootprintBreakdown({ 
-  totalFootprint, 
-  categories = defaultCategories 
+export function CarbonFootprintBreakdown({
+  totalFootprint,
+  categories = defaultCategories
 }: CarbonFootprintBreakdownProps) {
   return (
     <div className="space-y-6">
@@ -108,7 +108,7 @@ export function CarbonFootprintBreakdown({
                 Industry Average: 620 tCO₂e
               </div>
               <div className="text-sm text-blue-600">
-                You're 6% below average
+                You&apos;re 6% below average
               </div>
             </div>
           </div>
@@ -147,9 +147,9 @@ export function CarbonFootprintBreakdown({
                     </div>
                   </div>
                 </div>
-                <Progress 
-                  value={category.percentage} 
-                  className="h-2" 
+                <Progress
+                  value={category.percentage}
+                  className="h-2"
                 />
               </div>
             );
@@ -176,7 +176,7 @@ export function CarbonFootprintBreakdown({
               </div>
               <div className="text-sm font-semibold text-green-800">-180 tCO₂e</div>
             </div>
-            
+
             <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-green-200">
               <div className="p-2 rounded-full bg-blue-100">
                 <Car className="h-4 w-4 text-blue-600" />
@@ -203,7 +203,7 @@ export function CarbonFootprintBreakdown({
               <div className="text-sm font-semibold text-green-800">-35 tCO₂e</div>
             </div>
           </div>
-          
+
           <div className="mt-4 p-3 bg-green-100 rounded-lg">
             <div className="text-sm font-medium text-green-900">
               Potential Total Reduction: 309 tCO₂e (53% of current footprint)

@@ -23,12 +23,11 @@ export function TransactionSuccess({
   blockchainTxHash,
   credits,
   totalPrice,
-  certificateUrl,
   explorerUrl,
   onDownloadCertificate,
   onClose,
 }: TransactionSuccessProps) {
-  const [copied, setCopied] = useState<string | null>(null);
+  const setCopied = useState<string | null>(null)[1];
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -36,10 +35,11 @@ export function TransactionSuccess({
       setCopied(type);
       toast.success(`${type} copied to clipboard!`);
       setTimeout(() => setCopied(null), 2000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy to clipboard");
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -62,7 +62,7 @@ export function TransactionSuccess({
             Your carbon credit purchase has been completed and recorded.
           </p>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {/* Transaction Details */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -101,11 +101,11 @@ export function TransactionSuccess({
                   Blockchain Verified
                 </Badge>
               </div>
-              
+
               <p className="text-sm text-green-700 mb-3">
                 This transaction has been permanently recorded on the Polygon blockchain.
               </p>
-              
+
               <div className="flex justify-between items-center text-xs mb-3">
                 <span className="text-green-600">Blockchain Hash:</span>
                 <div className="flex items-center gap-1">
@@ -122,7 +122,7 @@ export function TransactionSuccess({
                   </Button>
                 </div>
               </div>
-              
+
               {explorerUrl && (
                 <Button
                   variant="outline"
@@ -151,17 +151,17 @@ export function TransactionSuccess({
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-4">
             {onDownloadCertificate && (
-              <Button 
+              <Button
                 onClick={onDownloadCertificate}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
                 Download Certificate
               </Button>
             )}
-            
+
             {onClose && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onClose}
                 className="w-full"
               >
@@ -169,7 +169,7 @@ export function TransactionSuccess({
               </Button>
             )}
           </div>
-          
+
           <div className="text-xs text-gray-500 pt-4 border-t">
             Your certificate will be available in your dashboard within a few minutes.
           </div>

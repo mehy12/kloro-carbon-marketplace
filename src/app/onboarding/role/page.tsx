@@ -41,7 +41,7 @@ export default function OnboardingRolePage() {
     if (!isPending && !session) router.replace("/sign-in");
   }, [isPending, session, router]);
 
-const buyerForm = useForm<z.infer<typeof buyerSchema>>({
+  const buyerForm = useForm<z.infer<typeof buyerSchema>>({
     resolver: zodResolver(buyerSchema),
     defaultValues: restoreDraft("buyer", {
       companyName: "",
@@ -51,7 +51,7 @@ const buyerForm = useForm<z.infer<typeof buyerSchema>>({
     }),
   });
 
-const sellerForm = useForm<z.infer<typeof sellerSchema>>({
+  const sellerForm = useForm<z.infer<typeof sellerSchema>>({
     resolver: zodResolver(sellerSchema),
     defaultValues: restoreDraft("seller", {
       firmName: "",
@@ -71,7 +71,7 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
     });
     if (res.ok) {
       clearDraft("buyer");
-      try { setRole("buyer"); } catch {}
+      try { setRole("buyer"); } catch { }
       router.push("/buyer-dashboard");
     }
   };
@@ -85,7 +85,7 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
     });
     if (res.ok) {
       clearDraft("seller");
-      try { setRole("seller"); } catch {}
+      try { setRole("seller"); } catch { }
       router.push("/seller-dashboard?tab=projects&onboarding=true");
     }
   };
@@ -97,7 +97,7 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
         <CardContent className="p-4 space-y-4">
           <div className="space-y-1">
             <div className="text-xl font-semibold">What brings you to kloro?</div>
-            <div className="text-sm text-muted-foreground">Choose what you'd like to do to get started.</div>
+            <div className="text-sm text-muted-foreground">Choose what you&apos;d like to do to get started.</div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <RoleCard label="Buyer" active={role === "buyer"} onClick={() => setRoleState("buyer")} />
@@ -146,7 +146,7 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
                     </FormItem>
                   )} />
                 </div>
-                
+
                 <FormField control={buyerForm.control} name="address" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Company Address</FormLabel>
@@ -154,18 +154,18 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
                     <FormMessage />
                   </FormItem>
                 )} />
-                
+
                 {/* Carbon Footprint Assessment via Report Upload */}
                 <div className="space-y-4">
                   <div className="border-t pt-4">
                     <h3 className="text-base font-semibold mb-2">Carbon Footprint Assessment</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Upload your sustainability reports, and we'll automatically analyze and calculate your company's carbon footprint.
+                      Upload your sustainability reports, and we&apos;ll automatically analyze and calculate your company&apos;s carbon footprint.
                     </p>
                   </div>
-                  
+
                   <ReportUploadSection />
-                  
+
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-sm font-medium text-blue-900 mb-1">Supported Report Types</div>
                     <div className="text-sm text-blue-800 space-y-1">
@@ -198,7 +198,7 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
         </Card>
       )}
 
-{role === "seller" && (
+      {role === "seller" && (
         <Card>
           <CardContent className="p-4 space-y-4">
             <div className="space-y-1">
@@ -258,25 +258,25 @@ const sellerForm = useForm<z.infer<typeof sellerSchema>>({
                   <FormItem>
                     <FormLabel>Organization Description</FormLabel>
                     <FormControl>
-                      <textarea 
+                      <textarea
                         className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         placeholder="Describe your organization and the types of carbon credit projects you develop..."
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                
+
                 <div className="border-t pt-4">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-sm font-medium text-blue-900 mb-1">Next Steps</div>
                     <div className="text-sm text-blue-800">
-                      After completing this form, you'll be guided to add your first carbon credit project and upload sustainability reports to calculate your credits.
+                      After completing this form, you&apos;ll be guided to add your first carbon credit project and upload sustainability reports to calculate your credits.
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => persistDraft("seller", sellerForm.getValues())}>Save Draft</Button>
                   <Button type="submit">Create Organization & Continue</Button>
@@ -322,11 +322,11 @@ function Stepper({ step }: { step: number }) {
 }
 
 function persistDraft<T>(key: "buyer" | "seller", data: T) {
-  try { localStorage.setItem(`onboarding_draft_${key}`, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(`onboarding_draft_${key}`, JSON.stringify(data)); } catch { }
 }
 function restoreDraft<T>(key: "buyer" | "seller", fallback: T): T {
   try { const v = localStorage.getItem(`onboarding_draft_${key}`); return v ? JSON.parse(v) as T : fallback; } catch { return fallback; }
 }
 function clearDraft(key: "buyer" | "seller") {
-  try { localStorage.removeItem(`onboarding_draft_${key}`); } catch {}
+  try { localStorage.removeItem(`onboarding_draft_${key}`); } catch { }
 }

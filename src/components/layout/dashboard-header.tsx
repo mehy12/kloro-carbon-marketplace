@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { clearRole, getRole } from "@/lib/role";
+import { clearRole } from "@/lib/role";
 import DashboardUserButton from "@/modules/dashboard/dashboard-user-button";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
@@ -10,10 +10,9 @@ import ConnectWalletButton from "@/components/web3/ConnectWalletButton";
 
 export default function DashboardHeader({ title, linkLabel, linkHref }: { title?: string; linkLabel?: string; linkHref?: string }) {
   const router = useRouter();
-  const role = typeof window !== "undefined" ? getRole() : null;
 
   const onLogout = () => {
-    try { clearRole(); } catch {}
+    try { clearRole(); } catch { }
     authClient.signOut({
       fetchOptions: {
         onSuccess: () => router.push("/sign-in"),

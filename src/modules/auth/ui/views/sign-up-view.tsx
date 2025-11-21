@@ -4,14 +4,12 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { FaGithub, FaGoogle } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 
 import { authClient } from "@/lib/auth-client";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import React, { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { setRole } from "@/lib/role";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,7 +41,7 @@ export default function SignUpView() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  
+
   // Get the current origin to build proper callback URLs
   const getCallbackURL = (path: string) => {
     if (typeof window !== 'undefined') {
@@ -54,7 +52,7 @@ export default function SignUpView() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-defaultValues: {
+    defaultValues: {
       name: "",
       email: "",
       password: "",
@@ -65,7 +63,7 @@ defaultValues: {
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     setError(null);
     setPending(true);
-authClient.signUp.email(
+    authClient.signUp.email(
       {
         name: data.name,
         email: data.email,
@@ -73,7 +71,7 @@ authClient.signUp.email(
         callbackURL: getCallbackURL("/onboarding/role"),
       },
       {
-onSuccess: () => {
+        onSuccess: () => {
           setPending(false);
           router.push("/onboarding/role");
         },
@@ -232,7 +230,7 @@ onSuccess: () => {
 
           <div className="bg-radial from-turquoise-500 via-indigo-200 to-blue-200 relative hidden md:flex flex-col gap-y-6 items-center justify-center">
             <Image src="/kloro.png" alt="kloro. logo" height={92} width={92} />
-            
+
           </div>
         </CardContent>
       </Card>

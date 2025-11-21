@@ -4,68 +4,104 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { buyerProfile, user as userTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { calculateCarbonFootprintWithAI } from "@/lib/gemini";
+import { calculateCarbonFootprintWithAI } from "@/lib/ollama";
+
+interface ErrorWithMessage {
+  message?: string;
+}
+function getErrorMessage(e: unknown): string {
+  if (typeof e === "string") return e;
+  if (typeof e === "object" && e !== null && "message" in e) {
+    return (e as ErrorWithMessage).message ?? "Unknown error";
+  }
+  return "Unknown error";
+}
+
+type SessionUser = { id: string; role?: string } | null;
+type SafeSession = { user?: SessionUser } | null;
 
 export async function POST(req: NextRequest) {
   const hdrs = await headers();
-  const session = await auth.api.getSession({ headers: hdrs });
-  if (!session) {
+  const sessionRaw = await auth.api.getSession({ headers: hdrs });
+  const session = sessionRaw as SafeSession;
+
+  if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await req.json().catch(() => ({}));
-  const {
-    companyName,
-    industryType,
-    address,
-    employeeCount,
-    annualRevenue,
-    energyConsumption,
-    businessTravelDistance,
-  } = body ?? {};
 
-  // Use Gemini AI for enhanced carbon footprint calculation
-  const aiCalculationResult = await calculateCarbonFootprintWithAI({
-    employeeCount: employeeCount || 1,
-    annualRevenue: annualRevenue || 0,
-    industryType: industryType || 'other',
-    energyConsumption: energyConsumption || 0,
-    businessTravelDistance: businessTravelDistance || 0
-  });
-  
-  const calculatedFootprint = aiCalculationResult.totalFootprint;
-  const recommendedCredits = aiCalculationResult.recommendedCredits;
+  // Narrow and coerce inputs
+  const companyName = typeof body?.companyName === "string" ? body.companyName : null;
+  const industryType = typeof body?.industryType === "string" ? body.industryType : "other";
+  const address = typeof body?.address === "string" ? body.address : null;
+
+  const employeeCount =
+    typeof body?.employeeCount === "number" && Number.isFinite(body.employeeCount)
+      ? Math.max(0, Math.floor(body.employeeCount))
+      : 1;
+
+  const annualRevenue =
+    typeof body?.annualRevenue === "number" && Number.isFinite(body.annualRevenue)
+      ? body.annualRevenue
+      : 0;
+
+  const energyConsumption =
+    typeof body?.energyConsumption === "number" && Number.isFinite(body.energyConsumption)
+      ? body.energyConsumption
+      : 0;
+
+  const businessTravelDistance =
+    typeof body?.businessTravelDistance === "number" && Number.isFinite(body.businessTravelDistance)
+      ? body.businessTravelDistance
+      : 0;
 
   try {
-    // Insert buyer_profile for this user (1:1 using user id as profile id)
+    // Use AI to calculate footprint
+    const aiCalculationResult = await calculateCarbonFootprintWithAI({
+      employeeCount,
+      annualRevenue,
+      industryType,
+      energyConsumption,
+      businessTravelDistance,
+    });
+
+    const calculatedFootprint =
+      typeof aiCalculationResult?.totalFootprint === "number"
+        ? aiCalculationResult.totalFootprint
+        : Number(aiCalculationResult?.totalFootprint ?? 0);
+
+    const recommendedCredits =
+      typeof aiCalculationResult?.recommendedCredits === "number"
+        ? aiCalculationResult.recommendedCredits
+        : Number(aiCalculationResult?.recommendedCredits ?? 0);
+
+    // Persist buyer profile (1:1 using user id as profile id)
     await db.insert(buyerProfile).values({
-      id: session.user.id as any,
-      userId: session.user.id as any,
-      companyName: companyName as any,
-      industry: (industryType ?? null) as any,
-      address: (address ?? null) as any,
-      employeeCount: employeeCount as any,
-      annualRevenue: annualRevenue?.toString() as any,
-      energyConsumption: energyConsumption?.toString() as any,
-      businessTravelDistance: businessTravelDistance?.toString() as any,
-      calculatedCarbonFootprint: calculatedFootprint.toString() as any,
-      recommendedCredits: recommendedCredits as any,
+      id: session.user.id,
+      userId: session.user.id,
+      companyName: companyName,
+      industry: industryType ?? null,
+      address: address ?? null,
+      employeeCount,
+      annualRevenue: String(annualRevenue),
+      energyConsumption: String(energyConsumption),
+      businessTravelDistance: String(businessTravelDistance),
+      calculatedCarbonFootprint: String(calculatedFootprint),
+      recommendedCredits,
     });
 
-    // Update role to buyer (onboardingCompleted removed per new schema)
-    await db
-      .update(userTable)
-      .set({ role: "buyer" as any })
-      .where(eq(userTable.id, session.user.id as any));
+    // Update user role to buyer
+    await db.update(userTable).set({ role: "buyer" }).where(eq(userTable.id, session.user.id));
 
-    return NextResponse.json({ 
-      ok: true, 
+    return NextResponse.json({
+      ok: true,
       carbonFootprint: calculatedFootprint,
-      recommendedCredits: recommendedCredits,
-      breakdown: aiCalculationResult.breakdown,
-      insights: aiCalculationResult.insights
+      recommendedCredits,
+      breakdown: aiCalculationResult?.breakdown ?? null,
+      insights: aiCalculationResult?.insights ?? null,
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: getErrorMessage(e) }, { status: 500 });
   }
 }

@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-const { ethers } = require('ethers');
-const fs = require('fs');
-const path = require('path');
+import { ethers } from "ethers";
 
 // Configuration
 const config = {
@@ -24,18 +22,18 @@ const CONTRACT_ABI = [
 async function checkBlockchain() {
   try {
     console.log('🔍 Checking Polygon Mumbai Blockchain Status...\n');
-    
+
     // Connect to network
     const provider = new ethers.JsonRpcProvider(config.RPC_URL);
-    
+
     // Check network connection
     const network = await provider.getNetwork();
     console.log(`✅ Connected to: ${network.name} (Chain ID: ${network.chainId})`);
-    
+
     // Get latest block
     const blockNumber = await provider.getBlockNumber();
     console.log(`📦 Latest Block: ${blockNumber}\n`);
-    
+
     // If contract address is provided, check contract status
     if (config.CONTRACT_ADDRESS) {
       await checkContract(provider);
@@ -44,17 +42,17 @@ async function checkBlockchain() {
       console.log('📖 To check a specific contract:');
       console.log('   CONTRACT_ADDRESS=0x... node scripts/check-blockchain.js\n');
     }
-    
+
     // Check specific transaction hash if provided
     const txHash = process.argv[2];
     if (txHash && txHash.startsWith('0x')) {
       await checkTransaction(provider, txHash);
     }
-    
+
     console.log('🔗 Useful Links:');
     console.log('   • Mumbai PolygonScan: https://mumbai.polygonscan.com/');
     console.log('   • Mumbai Faucet: https://faucet.polygon.technology/');
-    
+
   } catch (error) {
     console.error('❌ Error:', error.message);
     process.exit(1);
@@ -65,33 +63,33 @@ async function checkContract(provider) {
   try {
     console.log('🏗️  Contract Analysis:');
     console.log(`   Contract Address: ${config.CONTRACT_ADDRESS}`);
-    
+
     // Check if contract exists
     const code = await provider.getCode(config.CONTRACT_ADDRESS);
     if (code === '0x') {
       console.log('❌ Contract not found or not deployed at this address\n');
       return;
     }
-    
+
     console.log('✅ Contract found and deployed');
-    
+
     // Create contract instance
     const contract = new ethers.Contract(config.CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-    
+
     // Get contract stats
     const stats = await contract.getContractStats();
     console.log(`📊 Total Transactions: ${stats.totalTx}`);
     console.log(`🌱 Total Credits Traded: ${stats.totalCredits}`);
-    
+
     // Get recent transactions
     if (stats.totalTx > 0) {
       console.log('\n📋 Recent Transactions:');
       const recentCount = Math.min(5, Number(stats.totalTx));
-      
+
       for (let i = Number(stats.totalTx) - recentCount; i < Number(stats.totalTx); i++) {
         try {
           const tx = await contract.getTransaction(i);
-          console.log(`   [${i}] ${tx.credits} credits: ${tx.buyer.slice(0,8)}... → ${tx.seller.slice(0,8)}...`);
+          console.log(`   [${i}] ${tx.credits} credits: ${tx.buyer.slice(0, 8)}... → ${tx.seller.slice(0, 8)}...`);
           console.log(`       Project: ${tx.projectId} | Registry: ${tx.registry}`);
           console.log(`       Time: ${new Date(Number(tx.timestamp) * 1000).toLocaleString()}`);
         } catch (e) {
@@ -99,9 +97,9 @@ async function checkContract(provider) {
         }
       }
     }
-    
+
     console.log(`\n🔗 View on PolygonScan: https://mumbai.polygonscan.com/address/${config.CONTRACT_ADDRESS}\n`);
-    
+
   } catch (error) {
     console.log(`❌ Contract check failed: ${error.message}\n`);
   }
@@ -110,29 +108,29 @@ async function checkContract(provider) {
 async function checkTransaction(provider, txHash) {
   try {
     console.log(`🔍 Checking Transaction: ${txHash}`);
-    
+
     const tx = await provider.getTransaction(txHash);
     if (!tx) {
       console.log('❌ Transaction not found\n');
       return;
     }
-    
+
     console.log(`✅ Transaction found:`);
     console.log(`   Block: ${tx.blockNumber}`);
     console.log(`   From: ${tx.from}`);
     console.log(`   To: ${tx.to}`);
     console.log(`   Gas Used: ${tx.gasLimit}`);
     console.log(`   Status: ${tx.blockNumber ? 'Confirmed' : 'Pending'}`);
-    
+
     // Get receipt for more details
     if (tx.blockNumber) {
       const receipt = await provider.getTransactionReceipt(txHash);
       console.log(`   Gas Used: ${receipt.gasUsed}/${tx.gasLimit}`);
       console.log(`   Status: ${receipt.status ? 'Success' : 'Failed'}`);
     }
-    
+
     console.log(`\n🔗 View on PolygonScan: https://mumbai.polygonscan.com/tx/${txHash}\n`);
-    
+
   } catch (error) {
     console.log(`❌ Transaction check failed: ${error.message}\n`);
   }

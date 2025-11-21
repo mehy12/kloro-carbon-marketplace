@@ -2,13 +2,13 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, AlertCircle, Brain, Globe, Leaf, Building, Calendar, DollarSign } from "lucide-react";
+import { TrendingUp, AlertCircle, Brain, Globe, Leaf, Building, Calendar, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AIInsightsView() {
   const [marketInsights, setMarketInsights] = useState<string[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(true);
-  
+
   useEffect(() => {
     const fetchMarketInsights = async () => {
       try {
@@ -29,7 +29,7 @@ export default function AIInsightsView() {
         setLoadingInsights(false);
       }
     };
-    
+
     fetchMarketInsights();
   }, []);
   return (
@@ -42,8 +42,8 @@ export default function AIInsightsView() {
               <Brain className="h-6 w-6 text-purple-700" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-purple-900">AI Market Intelligence</h2>
-              <p className="text-purple-700">Real-time insights and future predictions powered by AI</p>
+              <h2 className="text-xl font-bold text-purple-900">Market Intelligence</h2>
+              <p className="text-purple-700">Real-time insights and predictions powered by local analysis</p>
             </div>
           </div>
         </CardContent>
@@ -69,7 +69,7 @@ export default function AIInsightsView() {
                   Forestry and regenerative agriculture credits expected to surge due to COP28 commitments
                 </p>
               </div>
-              
+
               <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-blue-900">Direct Air Capture</span>
@@ -79,7 +79,7 @@ export default function AIInsightsView() {
                   New technology credits entering market with premium pricing (₹5,000-8,000/credit)
                 </p>
               </div>
-              
+
               <div className="p-3 rounded-lg bg-orange-50 border border-orange-200">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-orange-900">Renewable Energy</span>
@@ -111,7 +111,7 @@ export default function AIInsightsView() {
                   Stricter monitoring requirements may impact credit pricing and availability
                 </p>
               </div>
-              
+
               <div className="border-l-4 border-amber-500 pl-3">
                 <div className="flex items-center gap-2">
                   <Building className="h-4 w-4 text-amber-500" />
@@ -121,7 +121,7 @@ export default function AIInsightsView() {
                   New ESG reporting requirements will increase corporate demand by 40-60%
                 </p>
               </div>
-              
+
               <div className="border-l-4 border-green-500 pl-3">
                 <div className="flex items-center gap-2">
                   <Leaf className="h-4 w-4 text-green-500" />
@@ -160,7 +160,7 @@ export default function AIInsightsView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function AIInsightsView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center gap-2">
@@ -197,37 +197,37 @@ export default function AIInsightsView() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {loadingInsights ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="p-4 rounded-lg border border-gray-200 animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded mb-2 w-20"></div>
-                      <div className="h-5 bg-gray-200 rounded mb-2 w-full"></div>
-                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+            {loadingInsights ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="p-4 rounded-lg border border-gray-200 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2 w-20"></div>
+                    <div className="h-5 bg-gray-200 rounded mb-2 w-full"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              marketInsights.slice(0, 4).map((insight, index) => {
+                const badges = ['Breaking', 'Analysis', 'Trend', 'Prediction'];
+                const times = ['2 hours ago', '1 day ago', '3 days ago', '1 week ago'];
+
+                return (
+                  <div key={index} className="p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="text-xs">{badges[index] || 'Insight'}</Badge>
+                      <span className="text-xs text-muted-foreground">{times[index] || 'Recent'}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                marketInsights.slice(0, 4).map((insight, index) => {
-                  const badges = ['Breaking', 'Analysis', 'Trend', 'Prediction'];
-                  const times = ['2 hours ago', '1 day ago', '3 days ago', '1 week ago'];
-                  
-                  return (
-                    <div key={index} className="p-4 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="text-xs">{badges[index] || 'Insight'}</Badge>
-                        <span className="text-xs text-muted-foreground">{times[index] || 'Recent'}</span>
-                      </div>
-                      <h4 className="font-medium mb-1">{insight.split('.')[0]}.</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {insight.split('.').slice(1).join('.') || 'AI-generated market intelligence based on current trends.'}
-                      </p>
-                    </div>
-                  );
-                })
-              )}
+                    <h4 className="font-medium mb-1">{insight.split('.')[0]}.</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {insight.split('.').slice(1).join('.') || 'AI-generated market intelligence based on current trends.'}
+                    </p>
+                  </div>
+                );
+              })
+            )}
           </div>
-          
+
           <div className="flex justify-center pt-4">
             <Button variant="outline">
               View Full Market Analysis

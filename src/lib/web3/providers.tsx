@@ -2,7 +2,7 @@
 
 import "@rainbow-me/rainbowkit/styles.css";
 import { PropsWithChildren, useMemo } from "react";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { WagmiProvider, http } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getDefaultConfig, RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";

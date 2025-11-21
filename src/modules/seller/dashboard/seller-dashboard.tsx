@@ -28,7 +28,7 @@ export default function SellerDashboard() {
     const isOnboarding = searchParams.get("onboarding") === "true";
     setTab(q);
     setShowOnboarding(isOnboarding);
-    
+
     // If it's onboarding and they're on projects tab, show the add project dialog
     if (isOnboarding && q === "projects") {
       setTimeout(() => setOpenAdd(true), 500);
@@ -51,7 +51,7 @@ export default function SellerDashboard() {
               <div className="flex-1">
                 <div className="font-semibold text-green-900 mb-1">Welcome to your Seller Dashboard!</div>
                 <div className="text-sm text-green-800 mb-3">
-                  You've successfully created your organization profile. To start selling carbon credits, you'll need to:
+                  You&apos;ve successfully created your organization profile. To start selling carbon credits, you&apos;ll need to:
                 </div>
                 <div className="space-y-1 text-sm text-green-800">
                   <div className="flex items-center gap-2">
@@ -90,8 +90,8 @@ export default function SellerDashboard() {
             <TabsTrigger value="insights">AI Insights</TabsTrigger>
           </TabsList>
           <div className="hidden md:flex items-center gap-2">
-            <Button variant="outline" onClick={()=>setOpenAdd(true)}>Add Project</Button>
-            <Button onClick={()=>setTab("list")}>List Credits</Button>
+            <Button variant="outline" onClick={() => setOpenAdd(true)}>Add Project</Button>
+            <Button onClick={() => setTab("list")}>List Credits</Button>
           </div>
         </div>
 
@@ -109,12 +109,12 @@ export default function SellerDashboard() {
       {/* Mobile quick actions */}
       <Card className="md:hidden">
         <CardContent className="p-3 flex gap-2">
-          <Button className="flex-1" variant="outline" onClick={()=>setOpenAdd(true)}>Add Project</Button>
-          <Button className="flex-1" onClick={()=>setTab("list")}>List Credits</Button>
+          <Button className="flex-1" variant="outline" onClick={() => setOpenAdd(true)}>Add Project</Button>
+          <Button className="flex-1" onClick={() => setTab("list")}>List Credits</Button>
         </CardContent>
       </Card>
 
-      <AddProjectDialog open={openAdd} onClose={()=>setOpenAdd(false)} />
+      <AddProjectDialog open={openAdd} onClose={() => setOpenAdd(false)} />
     </div>
   );
 }

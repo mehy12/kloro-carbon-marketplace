@@ -41,11 +41,11 @@ export function ReportUploadSection() {
         if (progress >= 100) {
           progress = 100;
           clearInterval(interval);
-          setFiles(prev => prev.map(f => 
+          setFiles(prev => prev.map(f =>
             f.id === file.id ? { ...f, status: 'completed', progress: 100 } : f
           ));
         } else {
-          setFiles(prev => prev.map(f => 
+          setFiles(prev => prev.map(f =>
             f.id === file.id ? { ...f, progress } : f
           ));
         }
@@ -91,9 +91,8 @@ export function ReportUploadSection() {
   return (
     <div className="space-y-4">
       {/* Upload Area */}
-      <Card className={`border-2 border-dashed transition-colors ${
-        dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-      }`}>
+      <Card className={`border-2 border-dashed transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+        }`}>
         <CardContent className="p-6">
           <div
             className="text-center"
@@ -149,7 +148,7 @@ export function ReportUploadSection() {
                 </div>
                 {file.status === 'uploading' && (
                   <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                    <div 
+                    <div
                       className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${file.progress}%` }}
                     />
@@ -189,7 +188,7 @@ export function ReportUploadSection() {
                   Reports uploaded successfully
                 </div>
                 <div className="text-sm text-green-800 mt-1">
-                  Our AI will analyze your reports and automatically calculate your carbon footprint. 
+                  Our AI will analyze your reports and automatically calculate your carbon footprint.
                   You can continue with the onboarding process.
                 </div>
               </div>
@@ -201,7 +200,7 @@ export function ReportUploadSection() {
       {/* Alternative Manual Entry */}
       <div className="text-center">
         <div className="text-sm text-gray-600 mb-2">
-          Don't have reports ready?
+          Don&apos;t have reports ready?
         </div>
         <Button type="button" variant="link" className="text-sm">
           Enter data manually instead

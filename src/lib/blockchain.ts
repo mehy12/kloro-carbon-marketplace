@@ -18,10 +18,33 @@ export interface BlockchainConfig {
   contractAddress: string;
 }
 
+interface ErrorWithMessage {
+  message?: string;
+}
+
+interface ErrorWithCode {
+  code?: string;
+}
+
+function extractErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return (error as ErrorWithMessage).message ?? "Unknown error";
+  }
+  return "Unknown error";
+}
+
+function extractErrorCode(error: unknown): string | undefined {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return (error as ErrorWithCode).code;
+  }
+  return undefined;
+}
+
 class BlockchainService {
-  private provider: ethers.JsonRpcProvider;
-  private wallet: ethers.Wallet;
-  private contract: ethers.Contract;
+  private provider!: ethers.JsonRpcProvider;
+  private wallet!: ethers.Wallet;
+  private contract!: ethers.Contract;
   private isInitialized = false;
 
   constructor() {
@@ -32,11 +55,15 @@ class BlockchainService {
     if (this.isInitialized) return;
 
     const config = this.getConfig();
-    
+
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
     this.wallet = new ethers.Wallet(config.privateKey, this.provider);
-    this.contract = new ethers.Contract(config.contractAddress, CONTRACT_ABI, this.wallet);
-    
+    this.contract = new ethers.Contract(
+      config.contractAddress,
+      CONTRACT_ABI,
+      this.wallet
+    );
+
     this.isInitialized = true;
   }
 
@@ -57,18 +84,28 @@ class BlockchainService {
   /**
    * Record a carbon credit transaction on the blockchain
    */
-  async recordTransaction(params: BlockchainTransactionParams): Promise<string> {
+  async recordTransaction(
+    params: BlockchainTransactionParams
+  ): Promise<string> {
     try {
       this.initialize();
 
-      const { buyer, seller, credits, projectId, registry, certificateUrl, priceUsd } = params;
+      const {
+        buyer,
+        seller,
+        credits,
+        projectId,
+        registry,
+        certificateUrl,
+        priceUsd,
+      } = params;
 
       console.log("🔗 Recording transaction on blockchain...", {
         buyer: buyer.slice(0, 8) + "...",
         seller: seller.slice(0, 8) + "...",
         credits,
         projectId,
-        registry
+        registry,
       });
 
       // Call the smart contract function
@@ -82,41 +119,54 @@ class BlockchainService {
         priceUsd
       );
 
-      console.log("⏳ Transaction submitted, waiting for confirmation...", tx.hash);
+      console.log(
+        "⏳ Transaction submitted, waiting for confirmation...",
+        tx.hash
+      );
 
       // Wait for transaction confirmation
       const receipt = await tx.wait();
-      
+
       if (receipt.status === 1) {
         console.log("✅ Transaction confirmed on blockchain:", tx.hash);
         return tx.hash;
       } else {
         throw new Error("Transaction failed on blockchain");
       }
-
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Blockchain transaction failed:", error);
-      
-      // Provide more specific error messages
-      if (error.code === "INSUFFICIENT_FUNDS") {
+
+      const code = extractErrorCode(error);
+      const message = extractErrorMessage(error);
+
+      if (code === "INSUFFICIENT_FUNDS") {
         throw new Error("Insufficient MATIC balance for gas fees");
-      } else if (error.code === "NETWORK_ERROR") {
+      } else if (code === "NETWORK_ERROR") {
         throw new Error("Network connection failed. Please try again.");
-      } else if (error.message?.includes("revert")) {
+      } else if (message.includes("revert")) {
         throw new Error("Smart contract rejected the transaction");
       }
-      
-      throw new Error(`Blockchain transaction failed: ${error.message || error}`);
+
+      throw new Error(`Blockchain transaction failed: ${message}`);
     }
   }
 
   /**
    * Get a specific transaction from the blockchain
    */
-  async getTransaction(index: number) {
+  async getTransaction(index: number): Promise<{
+    buyer: string;
+    seller: string;
+    credits: number;
+    timestamp: number;
+    projectId: string;
+    registry: string;
+    certificateUrl: string;
+    priceUsd: number;
+  }> {
     try {
       this.initialize();
-      
+
       const tx = await this.contract.getTransaction(index);
       return {
         buyer: tx.buyer,
@@ -126,29 +176,34 @@ class BlockchainService {
         projectId: tx.projectId,
         registry: tx.registry,
         certificateUrl: tx.certificateUrl,
-        priceUsd: Number(tx.priceUsd)
+        priceUsd: Number(tx.priceUsd),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Failed to get transaction:", error);
-      throw new Error(`Failed to retrieve transaction: ${error.message}`);
+      const message = extractErrorMessage(error);
+      throw new Error(`Failed to retrieve transaction: ${message}`);
     }
   }
 
   /**
    * Get total transactions and credits from the blockchain
    */
-  async getContractStats() {
+  async getContractStats(): Promise<{
+    totalTransactions: number;
+    totalCredits: number;
+  }> {
     try {
       this.initialize();
-      
+
       const stats = await this.contract.getContractStats();
       return {
         totalTransactions: Number(stats.totalTx),
-        totalCredits: Number(stats.totalCredits)
+        totalCredits: Number(stats.totalCredits),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Failed to get contract stats:", error);
-      throw new Error(`Failed to get contract statistics: ${error.message}`);
+      const message = extractErrorMessage(error);
+      throw new Error(`Failed to get contract statistics: ${message}`);
     }
   }
 
@@ -158,12 +213,14 @@ class BlockchainService {
   async getBuyerTransactions(buyerAddress: string): Promise<number[]> {
     try {
       this.initialize();
-      
-      const indices = await this.contract.getBuyerTransactions(buyerAddress);
-      return indices.map((index: any) => Number(index));
-    } catch (error: any) {
+
+      const indices: Array<number | bigint> =
+        await this.contract.getBuyerTransactions(buyerAddress);
+      return indices.map((index) => Number(index));
+    } catch (error: unknown) {
       console.error("❌ Failed to get buyer transactions:", error);
-      throw new Error(`Failed to get buyer transactions: ${error.message}`);
+      const message = extractErrorMessage(error);
+      throw new Error(`Failed to get buyer transactions: ${message}`);
     }
   }
 
@@ -173,12 +230,14 @@ class BlockchainService {
   async getSellerTransactions(sellerAddress: string): Promise<number[]> {
     try {
       this.initialize();
-      
-      const indices = await this.contract.getSellerTransactions(sellerAddress);
-      return indices.map((index: any) => Number(index));
-    } catch (error: any) {
+
+      const indices: Array<number | bigint> =
+        await this.contract.getSellerTransactions(sellerAddress);
+      return indices.map((index) => Number(index));
+    } catch (error: unknown) {
       console.error("❌ Failed to get seller transactions:", error);
-      throw new Error(`Failed to get seller transactions: ${error.message}`);
+      const message = extractErrorMessage(error);
+      throw new Error(`Failed to get seller transactions: ${message}`);
     }
   }
 
@@ -243,4 +302,5 @@ export const DEFAULT_ADDRESSES = {
   SELLER_WALLET: "0x000000000000000000000000000000000000dEaD",
 } as const;
 
-export const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD" as const;
+export const DEAD_ADDRESS =
+  "0x000000000000000000000000000000000000dEaD" as const;

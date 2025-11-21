@@ -10,21 +10,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import AddProjectDialog from "./add-project-dialog";
 
+type Project = {
+  id: string;
+  name: string;
+  type: string;
+  vintageYear?: number | null;
+  registry?: string | null;
+  description?: string | null;
+};
+
 export default function Projects() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAdd, setOpenAdd] = useState(false);
-  const [selected, setSelected] = useState<any | null>(null);
+  const [selected, setSelected] = useState<Project | null>(null);
 
   const load = async () => {
     setLoading(true);
     const res = await fetch("/api/projects");
-    const data = await res.json();
+    const data = (await res.json()) as { projects?: Project[] };
     setItems(data.projects ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   return (
     <Card>
@@ -34,14 +45,18 @@ export default function Projects() {
           <div className="flex gap-2">
             <Input placeholder="Search projects" className="h-9" />
             <Select>
-              <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder="Verification" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="Verification" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="verra">Verra</SelectItem>
                 <SelectItem value="vcs">VCS</SelectItem>
                 <SelectItem value="gs">Gold Standard</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="h-9" onClick={()=>setOpenAdd(true)}>Add Project</Button>
+            <Button className="h-9" onClick={() => setOpenAdd(true)}>
+              Add Project
+            </Button>
           </div>
         </div>
 
@@ -57,9 +72,17 @@ export default function Projects() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={5} className="text-sm text-muted-foreground">Loading…</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                  Loading…
+                </TableCell>
+              </TableRow>
             ) : items.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-sm text-muted-foreground">No projects yet</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                  No projects yet
+                </TableCell>
+              </TableRow>
             ) : (
               items.map((p) => (
                 <TableRow key={p.id}>
@@ -69,7 +92,9 @@ export default function Projects() {
                   <TableCell>{p.registry ?? "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => setSelected(p)}>Details</Button>
+                      <Button size="sm" variant="outline" onClick={() => setSelected(p)}>
+                        Details
+                      </Button>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>Unlist</span>
                         <Switch />
@@ -92,7 +117,10 @@ export default function Projects() {
             <div className="space-y-4 text-sm">
               <div>
                 <div className="font-semibold">{selected.name}</div>
-                <div className="text-muted-foreground">Type: {selected.type} • Vintage: {selected.vintageYear ?? "—"} • Registry: {selected.registry ?? "—"}</div>
+                <div className="text-muted-foreground">
+                  Type: {selected.type} • Vintage: {selected.vintageYear ?? "—"} • Registry:{" "}
+                  {selected.registry ?? "—"}
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="font-medium">Description</div>
@@ -103,16 +131,7 @@ export default function Projects() {
         </DialogContent>
       </Dialog>
 
-      <AddProjectDialog open={openAdd} onClose={()=>setOpenAdd(false)} onCreated={load} />
+      <AddProjectDialog open={openAdd} onClose={() => setOpenAdd(false)} onCreated={load} />
     </Card>
-  );
-}
-
-function Info({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-md border p-3">
-      <div className="text-xs text-muted-foreground">{title}</div>
-      <div className="text-base font-medium">{value}</div>
-    </div>
   );
 }

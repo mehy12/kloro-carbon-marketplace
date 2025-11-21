@@ -12,7 +12,7 @@ export default async function SignIn() {
 
   if (!!session) {
     const role = (session.user?.role as "buyer" | "seller" | undefined) ?? "buyer";
-    const completed = (session.user as any)?.onboardingCompleted as boolean | undefined;
+    const completed = (session.user as Record<string, unknown>)?.onboardingCompleted as boolean | undefined;
     if (completed === false) {
       redirect("/onboarding/role");
     }

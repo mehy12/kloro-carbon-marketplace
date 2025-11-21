@@ -5,40 +5,55 @@ import { db } from "@/db";
 import { sellerProfile, user as userTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+interface ErrorWithMessage {
+  message?: string;
+}
+function getErrorMessage(e: unknown): string {
+  if (typeof e === "string") return e;
+  if (typeof e === "object" && e !== null && "message" in e) {
+    return (e as ErrorWithMessage).message ?? "Unknown error";
+  }
+  return "Unknown error";
+}
+
+type SessionUser = { id: string; role?: string } | null;
+type SafeSession = { user?: SessionUser } | null;
+
 export async function POST(req: NextRequest) {
   const hdrs = await headers();
-  const session = await auth.api.getSession({ headers: hdrs });
-  if (!session) {
+  const sessionRaw = await auth.api.getSession({ headers: hdrs });
+  const session = sessionRaw as SafeSession;
+
+  if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await req.json().catch(() => ({}));
-  const {
-    firmName,
-    website,
-    organizationType,
-    location,
-    description,
-  } = body ?? {};
+  const firmName =
+    typeof body?.firmName === "string" ? body.firmName : null;
+  const website =
+    typeof body?.website === "string" ? body.website : null;
 
   try {
-    // Store additional data in a temporary way until we can update the schema
-    const organizationDescription = description ? `Organization Type: ${organizationType || 'Not specified'}\nLocation: ${location || 'Not specified'}\nDescription: ${description}` : null;
-    
+    // Insert seller profile
     await db.insert(sellerProfile).values({
-      id: session.user.id as any,
-      userId: session.user.id as any,
-      organizationName: (firmName ?? null) as any,
-      website: (website ?? null) as any,
+      id: session.user.id,        // no any
+      userId: session.user.id,    // no any
+      organizationName: firmName, // string | null
+      website: website,           // string | null
     });
 
+    // Update user role to seller
     await db
       .update(userTable)
-      .set({ role: "seller" as any })
-      .where(eq(userTable.id, session.user.id as any));
+      .set({ role: "seller" })
+      .where(eq(userTable.id, session.user.id));
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
+  } catch (e: unknown) {
+    return NextResponse.json(
+      { error: getErrorMessage(e) },
+      { status: 500 }
+    );
   }
 }

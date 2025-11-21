@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, getContract, parseUnits } from "viem";
+import { createPublicClient, createWalletClient, http, getContract } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
 import abi from "@/contracts/CarbonCredit1155ABI.json";
@@ -29,7 +29,7 @@ function getClients() {
 
 export async function mint1155(to: `0x${string}`, tokenId: bigint, amount: bigint) {
   const { contract, publicClient } = getClients();
-  const hash = await contract.write.mint([to, tokenId, amount, "0x" ]);
+  const hash = await contract.write.mint([to, tokenId, amount, "0x"]);
   await publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }

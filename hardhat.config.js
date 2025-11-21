@@ -1,6 +1,6 @@
-require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
-
+import "@nomicfoundation/hardhat-toolbox";
+import dotenv from "dotenv";
+dotenv.config();
 // Normalize private keys: accept with or without 0x, validate 32-byte (64 hex)
 const normalizePk = (pk) => {
   if (!pk) return undefined;
