@@ -1,15 +1,13 @@
-#!/usr/bin/env node
-
 import { ethers } from "ethers";
+import("dotenv").config();
 
 // Configuration
 const config = {
-  RPC_URL: process.env.RPC_URL || 'https://endpoints.omniatech.io/v1/matic/mumbai/public',
+  RPC_URL: process.env.RPC_URL || 'https://sepolia.base.org',
   CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
-  // You'll need to add the ABI when contract is compiled
 };
 
-// Contract ABI (simplified - you'll need the full ABI after compilation)
+// Contract ABI (simplified)
 const CONTRACT_ABI = [
   "function getTotalTransactions() public view returns (uint256)",
   "function getContractStats() public view returns (uint256 totalTx, uint256 totalCredits)",
@@ -21,7 +19,7 @@ const CONTRACT_ABI = [
 
 async function checkBlockchain() {
   try {
-    console.log('🔍 Checking Polygon Mumbai Blockchain Status...\n');
+    console.log('\n🔍 Checking Blockchain Status...\n');
 
     // Connect to network
     const provider = new ethers.JsonRpcProvider(config.RPC_URL);
@@ -38,9 +36,7 @@ async function checkBlockchain() {
     if (config.CONTRACT_ADDRESS) {
       await checkContract(provider);
     } else {
-      console.log('⚠️  CONTRACT_ADDRESS not set. Set it in your .env to check contract status.\n');
-      console.log('📖 To check a specific contract:');
-      console.log('   CONTRACT_ADDRESS=0x... node scripts/check-blockchain.js\n');
+      console.log('⚠️  CONTRACT_ADDRESS not set in .env file.\n');
     }
 
     // Check specific transaction hash if provided
@@ -48,10 +44,6 @@ async function checkBlockchain() {
     if (txHash && txHash.startsWith('0x')) {
       await checkTransaction(provider, txHash);
     }
-
-    console.log('🔗 Useful Links:');
-    console.log('   • Mumbai PolygonScan: https://mumbai.polygonscan.com/');
-    console.log('   • Mumbai Faucet: https://faucet.polygon.technology/');
 
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -62,7 +54,7 @@ async function checkBlockchain() {
 async function checkContract(provider) {
   try {
     console.log('🏗️  Contract Analysis:');
-    console.log(`   Contract Address: ${config.CONTRACT_ADDRESS}`);
+    console.log(`   Address: ${config.CONTRACT_ADDRESS}`);
 
     // Check if contract exists
     const code = await provider.getCode(config.CONTRACT_ADDRESS);
@@ -98,7 +90,7 @@ async function checkContract(provider) {
       }
     }
 
-    console.log(`\n🔗 View on PolygonScan: https://mumbai.polygonscan.com/address/${config.CONTRACT_ADDRESS}\n`);
+    console.log(`\n🔗 View on Explorer: https://sepolia.basescan.org/address/${config.CONTRACT_ADDRESS}\n`);
 
   } catch (error) {
     console.log(`❌ Contract check failed: ${error.message}\n`);
@@ -119,54 +111,19 @@ async function checkTransaction(provider, txHash) {
     console.log(`   Block: ${tx.blockNumber}`);
     console.log(`   From: ${tx.from}`);
     console.log(`   To: ${tx.to}`);
-    console.log(`   Gas Used: ${tx.gasLimit}`);
     console.log(`   Status: ${tx.blockNumber ? 'Confirmed' : 'Pending'}`);
 
-    // Get receipt for more details
     if (tx.blockNumber) {
       const receipt = await provider.getTransactionReceipt(txHash);
-      console.log(`   Gas Used: ${receipt.gasUsed}/${tx.gasLimit}`);
       console.log(`   Status: ${receipt.status ? 'Success' : 'Failed'}`);
     }
 
-    console.log(`\n🔗 View on PolygonScan: https://mumbai.polygonscan.com/tx/${txHash}\n`);
+    console.log(`\n🔗 View on Explorer: https://sepolia.basescan.org/tx/${txHash}\n`);
 
   } catch (error) {
     console.log(`❌ Transaction check failed: ${error.message}\n`);
   }
 }
 
-// Usage help
-function showUsage() {
-  console.log(`
-🔍 Kloro Blockchain Checker
-
-Usage:
-  node scripts/check-blockchain.js                    # Check network status
-  node scripts/check-blockchain.js 0x123...           # Check specific transaction
-  CONTRACT_ADDRESS=0x123... node scripts/check-blockchain.js  # Check contract
-
-Environment Variables:
-  RPC_URL           - Polygon RPC endpoint (default: public Mumbai RPC)
-  CONTRACT_ADDRESS  - Your deployed CarbonLedger contract address
-
-Examples:
-  # Basic network check
-  node scripts/check-blockchain.js
-
-  # Check with contract
-  CONTRACT_ADDRESS=0xABCD... node scripts/check-blockchain.js
-
-  # Check specific transaction
-  node scripts/check-blockchain.js 0x1234567890abcdef...
-`);
-}
-
-// Run if called directly
-if (require.main === module) {
-  if (process.argv[2] === '--help' || process.argv[2] === '-h') {
-    showUsage();
-  } else {
-    checkBlockchain();
-  }
-}
+// Run
+checkBlockchain();
